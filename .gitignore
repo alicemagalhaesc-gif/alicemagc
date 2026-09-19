@@ -1,0 +1,14 @@
+node_modules/
+dist/
+.env
+.env.*
+!.env.example
+*.log
+
+prisma/dev.db
+prisma/dev.db-journal
+
+web/node_modules/
+web/dist/
+
+*.tsbuildinfo

@@ -1,0 +1,150 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums de status/tipo/prioridade são mantidos como String (não enum
+// nativo do Postgres) de propósito: trocar valor permitido não exige
+// migração de schema. A validação vive em src/domain/constants.ts.
+
+model Pessoa {
+  id                       Int      @id @default(autoincrement())
+  nome                     String
+  email                    String?
+  capacidade_horas_semana  Int      @default(40)
+  ativo                    Boolean  @default(true)
+
+  projetosSponsor    Projeto[]          @relation("sponsor")
+  tarefasResponsavel Tarefa[]           @relation("responsavel")
+  tarefaEventos      TarefaEvento[]
+  baselineAudits     BaselineAuditLog[]
+}
+
+model Projeto {
+  id          Int    @id @default(autoincrement())
+  nome        String
+  status      String // Planejamento | Em Andamento | Pausado | Concluído | Cancelado
+  tipo        String @default("Change") // Run | Change
+  prioridade  String @default("Média") // Alta | Média | Baixa
+  progresso   Int    @default(0)
+  orcamento   Float?
+  gasto       Float?
+
+  // Prazo
+  // data_inicio e data_fim_planejada são "obrigatórios" para projetos NOVOS,
+  // mas essa obrigatoriedade é imposta em src/domain/projetoService.ts
+  // (ProjetoCriarInput), não aqui — projetos legados podem chegar sem elas
+  // (ver entrega 2 / src/migrations). Nunca fabricamos valor para preencher.
+  data_inicio                  DateTime?
+  data_fim_planejada           DateTime?
+  data_fim_baseline            DateTime?
+  data_fim_baseline_original   DateTime? // imutável após a 1a escrita — protegido por trigger de banco
+  numero_revisoes_baseline     Int       @default(0)
+  motivo_revisao_baseline      String?
+  data_fim_real                DateTime?
+
+  // Pausa
+  data_pausa               DateTime?
+  dias_pausado_acumulado   Int       @default(0)
+
+  // Classificação
+  esforco_estimado_horas Float?
+  sponsorId               Int?
+  sponsor                 Pessoa? @relation("sponsor", fields: [sponsorId], references: [id])
+
+  // Rastreio de atualização (dois campos distintos, ver seção 2 do spec)
+  data_ultima_atividade      DateTime?
+  data_ultimo_status_report  DateTime?
+
+  dados_estimados Boolean @default(false)
+
+  // Histerese de cor (entrega 3, seção 4.10 / kpis.ts::proximaSaudeExibida).
+  // saude_calculada = leitura crua do dia; saude_exibida = o que a UI
+  // mostra, só muda após 2 leituras diárias iguais (ou vermelho por sinal
+  // severo, que é imediato). Escritos exclusivamente pelo job diário em
+  // src/domain/kpiSnapshotJob.ts — nunca calculados no componente de tela.
+  saude_calculada String?
+  saude_exibida   String?
+
+  tarefas         Tarefa[]
+  tarefaEventos   TarefaEvento[]
+  baselineAudits  BaselineAuditLog[]
+  kpiSnapshots    KpiSnapshot[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Tarefa {
+  id        Int     @id @default(autoincrement())
+  projetoId Int
+  projeto   Projeto @relation(fields: [projetoId], references: [id])
+  nome      String
+  status    String // A Fazer | Em Andamento | Bloqueado | Concluído
+
+  data_criacao        DateTime  @default(now())
+  data_inicio          DateTime? // controlada exclusivamente por gatilho
+  data_conclusao        DateTime? // controlada exclusivamente por gatilho
+  data_bloqueio          DateTime? // controlada exclusivamente por gatilho
+  data_fim_planejada  DateTime? // preenchida manualmente
+
+  responsavelId     Int?
+  responsavel       Pessoa? @relation("responsavel", fields: [responsavelId], references: [id])
+  estimativa_horas  Float?
+
+  eventos TarefaEvento[]
+}
+
+// Histórico append-only de transições de status de tarefa
+model TarefaEvento {
+  id         Int      @id @default(autoincrement())
+  tarefaId   Int
+  tarefa     Tarefa   @relation(fields: [tarefaId], references: [id])
+  projetoId  Int // desnormalizado de propósito
+  projeto    Projeto  @relation(fields: [projetoId], references: [id])
+  de_status  String? // null na criação da tarefa
+  para_status String
+  timestamp  DateTime @default(now())
+  usuarioId  Int?
+  usuario    Pessoa?  @relation(fields: [usuarioId], references: [id])
+}
+
+// Configuração global do app (chave/valor). Usado para DATA_INICIO_COLETA
+// (entrega 2, seção 4) e outras flags globais futuras.
+model AppConfig {
+  chave String @id
+  valor String
+}
+
+// Histórico append-only de leituras diárias de KPI (entrega 3, seção 6).
+// Os cards da UI SEMPRE calculam o valor atual sob demanda via kpis.ts —
+// nenhum card lê valor daqui. Isto serve só para comparação com período
+// anterior e para a histerese de cor (kpis.proximaSaudeExibida).
+model KpiSnapshot {
+  id              Int      @id @default(autoincrement())
+  data_referencia DateTime
+  escopo          String // "portfolio" | "projeto"
+  projetoId       Int?
+  projeto         Projeto? @relation(fields: [projetoId], references: [id])
+  kpi             String
+  valor           Float?
+  status_rag      String?
+  createdAt       DateTime @default(now())
+}
+
+// Log de auditoria da ação "Revisar baseline"
+model BaselineAuditLog {
+  id                     Int      @id @default(autoincrement())
+  projetoId              Int
+  projeto                Projeto  @relation(fields: [projetoId], references: [id])
+  usuarioId              Int?
+  usuario                Pessoa?  @relation(fields: [usuarioId], references: [id])
+  timestamp              DateTime @default(now())
+  de_data_fim_baseline   DateTime?
+  para_data_fim_baseline DateTime
+  motivo                 String
+}

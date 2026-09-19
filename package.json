@@ -1,0 +1,49 @@
+{
+  "name": "prototipo-portfolio",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/server.js",
+  "scripts": {
+    "db:push": "prisma db push",
+    "demo": "ts-node src/demo.ts",
+    "demo2": "ts-node src/demo2.ts",
+    "migrar:legados": "ts-node src/migrations/002_backfill_dados_legados.ts",
+    "tela:regularizar": "ts-node src/telas/regularizarProjetos.ts",
+    "demo3": "ts-node src/demo3.ts",
+    "kpi:snapshot": "ts-node src/domain/kpiSnapshotJob.ts",
+    "server": "ts-node src/server.ts",
+    "seed:dashboard": "ts-node src/seedDashboard.ts",
+    "postinstall": "prisma generate",
+    "build:web": "cd web && npm install && npm run build",
+    "build": "tsc && npm run build:web",
+    "start": "node dist/server.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "dependencies": {
+    "@prisma/client": "5.22.0",
+    "@types/node": "^26.6.2",
+    "cors": "^2.8.6",
+    "csv-parse": "^7.0.2",
+    "dotenv": "^18.0.1",
+    "exceljs": "^4.4.0",
+    "express": "^5.2.1",
+    "multer": "^2.4.0",
+    "prisma": "5.22.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "allowScripts": {
+    "prisma@5.22.0": true,
+    "@prisma/engines@5.22.0": true,
+    "@prisma/client@5.22.0": true
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.19",
+    "@types/express": "^5.0.6",
+    "@types/multer": "^2.2.0"
+  }
+}
