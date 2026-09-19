@@ -6,7 +6,7 @@ import { useLanguage } from "../i18n/LanguageContext";
 export function ProgressoPonderadoCard({ dados }: { dados: DashboardPayload["linha2"]["progresso_ponderado"] }) {
   const { t } = useLanguage();
   return (
-    <Card titulo={t("card.progresso.titulo")} status={dados.status}>
+    <Card titulo={t("card.progresso.titulo")} legenda={t("card.progresso.legenda")} status={dados.status}>
       <div className="card-main">
         <ValorOuTraco valor={dados.valor} texto={pct(dados.valor, 0)} motivoNulo={dados.motivo_nulo} />
       </div>
@@ -37,7 +37,7 @@ export function TarefasBloqueadasCard({ dados }: { dados: DashboardPayload["linh
       : "verde";
 
   return (
-    <Card titulo={t("card.bloqueadas.titulo")} status={statusGeral}>
+    <Card titulo={t("card.bloqueadas.titulo")} legenda={t("card.bloqueadas.legenda")} status={statusGeral}>
       <div className="card-main">
         {dados.pct.valor === null ? (
           <Tooltip text={dados.pct.motivo_nulo ?? t("geral.semDado")}>
@@ -78,7 +78,7 @@ export function AlocacaoEquipeCard({
 }) {
   const { t } = useLanguage();
   return (
-    <Card titulo={t("card.alocacao.titulo")} status={dados.status} onClick={onToggle}>
+    <Card titulo={t("card.alocacao.titulo")} legenda={t("card.alocacao.legenda")} status={dados.status} onClick={onToggle}>
       <div className="card-main">
         <ValorOuTraco valor={dados.valor} texto={pct(dados.valor, 0)} motivoNulo={dados.motivo_nulo} />
       </div>
@@ -107,7 +107,7 @@ export function ProjetosSemAtualizacaoCard({ dados }: { dados: DashboardPayload[
   const { t } = useLanguage();
   const status = dados.n === 0 ? "verde" : dados.n <= 2 ? "amarelo" : "vermelho";
   return (
-    <Card titulo={t("card.desatualizados.titulo")} status={status}>
+    <Card titulo={t("card.desatualizados.titulo")} legenda={t("card.desatualizados.legenda")} status={status}>
       <div className="card-main">
         <span className="card-value">{dados.n}</span>
       </div>

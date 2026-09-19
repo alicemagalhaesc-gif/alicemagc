@@ -1,5 +1,6 @@
 import ExcelJS from "exceljs";
 import { parse as parseCsv } from "csv-parse/sync";
+import iconv from "iconv-lite";
 import { randomUUID } from "node:crypto";
 import { prisma } from "../db";
 import { criarProjeto, ProjetoCriarInput } from "./projetoService";
@@ -95,7 +96,7 @@ const ALIASES: Record<EntidadeImportavel, Record<string, string>> = {
   },
 };
 
-function normalizarCabecalho(s: string): string {
+export function normalizarCabecalho(s: string): string {
   return s
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
@@ -117,11 +118,23 @@ export interface PreviewImportacao {
 // arquivo inteiro na hora de confirmar a importação.
 const cacheImportacoes = new Map<string, { entidade: EntidadeImportavel; linhas: Record<string, string>[] }>();
 
-async function parsearArquivo(buffer: Buffer, nomeArquivo: string): Promise<Record<string, string>[]> {
+// Excel no Windows em português normalmente salva "CSV" na codificação ANSI
+// (Windows-1252), não UTF-8 — acentos viram "�" se a gente ler como UTF-8
+// direto. Detecta tentando decodificar como UTF-8 estrito; se falhar, usa
+// Windows-1252 (cobre os mesmos bytes que o Excel grava nesse caso).
+function bufferParaTexto(buffer: Buffer): string {
+  try {
+    return new TextDecoder("utf-8", { fatal: true }).decode(buffer);
+  } catch {
+    return iconv.decode(buffer, "win1252");
+  }
+}
+
+export async function parsearArquivo(buffer: Buffer, nomeArquivo: string): Promise<Record<string, string>[]> {
   const ehCsv = nomeArquivo.toLowerCase().endsWith(".csv");
 
   if (ehCsv) {
-    const registros: Record<string, string>[] = parseCsv(buffer, {
+    const registros: Record<string, string>[] = parseCsv(bufferParaTexto(buffer), {
       columns: true,
       skip_empty_lines: true,
       trim: true,

@@ -22,6 +22,7 @@ model Pessoa {
 
   projetosSponsor    Projeto[]          @relation("sponsor")
   tarefasResponsavel Tarefa[]           @relation("responsavel")
+  recursosAlocados   TarefaRecurso[]    @relation("recursoTarefa")
   tarefaEventos      TarefaEvento[]
   baselineAudits     BaselineAuditLog[]
 }
@@ -63,6 +64,7 @@ model Projeto {
   data_ultimo_status_report  DateTime?
 
   dados_estimados Boolean @default(false)
+  origem_dados    String? // "msproject" quando criado/atualizado via import da EAP — referência, não trava edição manual
 
   // Histerese de cor (entrega 3, seção 4.10 / kpis.ts::proximaSaudeExibida).
   // saude_calculada = leitura crua do dia; saude_exibida = o que a UI
@@ -99,7 +101,31 @@ model Tarefa {
   responsavel       Pessoa? @relation("responsavel", fields: [responsavelId], references: [id])
   estimativa_horas  Float?
 
-  eventos TarefaEvento[]
+  // Campos da EAP do MS Project (entrega de importação) — só escritos pelo
+  // importador; status/progresso continuam de responsabilidade exclusiva do
+  // gatilho de tarefa (atualizarStatusTarefa), nunca reescritos por reimport.
+  edt                 String? // código da EAP, ex: "1.1.3.2.7" — chave de upsert junto com projetoId
+  eh_marco            Boolean @default(false)
+  duracao_dias        Float?
+  custo_planejado     Float?
+  predecessoras_raw   String? // números de tarefa do MS Project, sem resolução — só referência
+
+  recursos TarefaRecurso[]
+  eventos  TarefaEvento[]
+}
+
+// Alocação planejada de recursos por tarefa, vinda do MS Project (uma
+// tarefa pode ter vários recursos, cada um com seu % de alocação). O campo
+// Tarefa.responsavelId continua existindo para a tela de Tarefas (mostra o
+// recurso de maior alocação) — esta tabela é a fonte completa para os KPIs
+// de Recursos (planejado x alocado, sobrealocação, concentração).
+model TarefaRecurso {
+  id                  Int    @id @default(autoincrement())
+  tarefaId            Int
+  tarefa              Tarefa @relation(fields: [tarefaId], references: [id])
+  pessoaId            Int
+  pessoa              Pessoa @relation("recursoTarefa", fields: [pessoaId], references: [id])
+  percentual_alocacao Float
 }
 
 // Histórico append-only de transições de status de tarefa

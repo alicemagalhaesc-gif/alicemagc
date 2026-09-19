@@ -8,6 +8,7 @@ import multer from "multer";
 import { prisma, garantirTriggersDeImutabilidade } from "./db";
 import { montarPayloadDashboard } from "./domain/dashboardService";
 import { prepararPreview, confirmarImportacao, EntidadeImportavel } from "./domain/importService";
+import { prepararPreviewMsProject, confirmarImportacaoMsProject } from "./domain/msProjectImportService";
 import { executarConsulta, ENTIDADES, ConsultaExplorer } from "./domain/explorerService";
 import { listarPessoas, criarPessoa, atualizarPessoa, excluirPessoa } from "./domain/pessoaService";
 import { listarTarefas, criarTarefa, atualizarTarefa, atualizarStatusTarefa, excluirTarefa } from "./domain/tarefaService";
@@ -121,6 +122,30 @@ app.post("/api/import/commit", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ erro: (err as Error).message });
+  }
+});
+
+// --- Importação da EAP do MS Project (formato fixo, sem tela de mapeamento) ---
+
+app.post("/api/import/msproject/preview", upload.single("arquivo"), async (req, res) => {
+  try {
+    if (!req.file) return res.status(400).json({ erro: "arquivo não enviado" });
+    const preview = await prepararPreviewMsProject(req.file.buffer, req.file.originalname);
+    res.json(preview);
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ erro: (err as Error).message });
+  }
+});
+
+app.post("/api/import/msproject/commit", async (req, res) => {
+  try {
+    const { importId } = req.body as { importId: string };
+    const resultado = await confirmarImportacaoMsProject(importId);
+    res.json(resultado);
+  } catch (err) {
+    console.error(err);
+    res.status(400).json({ erro: (err as Error).message });
   }
 });
 

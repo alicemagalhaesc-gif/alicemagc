@@ -1,5 +1,5 @@
 import type { DashboardPayload, StatusRag } from "../types";
-import { StatusDot, Tooltip } from "./Common";
+import { StatusDot, Tooltip, InfoTooltip } from "./Common";
 import { pct, moeda, dias, num } from "../format";
 import { useLanguage } from "../i18n/LanguageContext";
 
@@ -43,16 +43,22 @@ export function ProjectsTable({
       <table className="projects-table">
         <thead>
           <tr>
-            <th>{t("tabela.saude")}</th>
+            <th>
+              {t("tabela.saude")} <InfoTooltip text={t("tabela.saudeLegenda")} />
+            </th>
             <th>{t("tabela.projeto")}</th>
             <th>{t("tabela.area")}</th>
             <th>{t("tabela.status")}</th>
             <th>{t("tabela.progresso")}</th>
             <th>
-              <Tooltip text={t("tabela.ritmoTooltip")}>{t("tabela.ritmo")}</Tooltip>
+              {t("tabela.ritmo")} <InfoTooltip text={t("tabela.ritmoTooltip")} />
             </th>
-            <th>{t("tabela.cpi")}</th>
-            <th>{t("tabela.diasAtraso")}</th>
+            <th>
+              {t("tabela.cpi")} <InfoTooltip text={t("tabela.cpiLegenda")} />
+            </th>
+            <th>
+              {t("tabela.diasAtraso")} <InfoTooltip text={t("tabela.diasAtrasoLegenda")} />
+            </th>
             <th>{t("tabela.orcamento")}</th>
           </tr>
         </thead>

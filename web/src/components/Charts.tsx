@@ -1,6 +1,7 @@
 import type { DashboardPayload } from "../types";
 import { moeda, pct, dataBR } from "../format";
 import { useLanguage } from "../i18n/LanguageContext";
+import { InfoTooltip } from "./Common";
 
 const CAT = ["var(--series-1)", "var(--series-2)", "var(--series-3)", "var(--series-4)", "var(--series-5)"];
 
@@ -23,7 +24,9 @@ export function ThroughputChart({
     const disponivelEm = dataInicioColeta ? addDiasIso(dataInicioColeta, 28) : null;
     return (
       <div className="chart-card">
-        <h3>{t("chart.throughput.titulo")}</h3>
+        <h3>
+        {t("chart.throughput.titulo")} <InfoTooltip text={t("chart.throughput.legenda")} />
+      </h3>
         <div className="empty-state">
           {dataInicioColeta
             ? `${t("chart.throughput.coletaIniciada")} ${dataBR(dataInicioColeta)}. ${t("chart.throughput.dadosDisponiveis")} ${dataBR(disponivelEm)}.`
@@ -54,7 +57,9 @@ export function ThroughputChart({
 
   return (
     <div className="chart-card">
-      <h3>{t("chart.throughput.titulo")}</h3>
+      <h3>
+        {t("chart.throughput.titulo")} <InfoTooltip text={t("chart.throughput.legenda")} />
+      </h3>
       <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={t("chart.throughput.titulo")}>
         <line x1={padL} y1={10 + alturaUtil} x2={W} y2={10 + alturaUtil} stroke="var(--gridline)" strokeWidth="1" />
         {dados.semanas.map((s, i) => {
@@ -98,7 +103,9 @@ export function OrcamentoGastoChart({ dados }: { dados: DashboardPayload["linha3
 
   return (
     <div className="chart-card">
-      <h3>{t("chart.orcamentoGasto.titulo")}</h3>
+      <h3>
+        {t("chart.orcamentoGasto.titulo")} <InfoTooltip text={t("chart.orcamentoGasto.legenda")} />
+      </h3>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {itens.map((i) => (
           <div key={i.id}>
@@ -158,7 +165,9 @@ export function DistribuicaoStatusDonut({ dados }: { dados: DashboardPayload["li
 
   return (
     <div className="chart-card">
-      <h3>{t("chart.distribuicao.titulo")}</h3>
+      <h3>
+        {t("chart.distribuicao.titulo")} <InfoTooltip text={t("chart.distribuicao.legenda")} />
+      </h3>
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
         <svg viewBox="0 0 140 140" width="140" height="140" role="img" aria-label={t("chart.distribuicao.titulo")}>
           {fatias.map((f) => (
@@ -188,7 +197,9 @@ export function DesvioCustoChart({ dados }: { dados: DashboardPayload["linha3"][
   if (dados.length === 0) {
     return (
       <div className="chart-card">
-        <h3>{t("chart.desvio.titulo")}</h3>
+        <h3>
+        {t("chart.desvio.titulo")} <InfoTooltip text={t("chart.desvio.legenda")} />
+      </h3>
         <div className="empty-state">{t("chart.desvio.vazio")}</div>
       </div>
     );
@@ -197,7 +208,9 @@ export function DesvioCustoChart({ dados }: { dados: DashboardPayload["linha3"][
 
   return (
     <div className="chart-card">
-      <h3>{t("chart.desvio.titulo")}</h3>
+      <h3>
+        {t("chart.desvio.titulo")} <InfoTooltip text={t("chart.desvio.legenda")} />
+      </h3>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {dados.map((d) => {
           const larguraPct = (Math.abs(d.variancia) / maxAbs) * 50;
@@ -245,7 +258,9 @@ export function MixPortfolioBar({ dados }: { dados: DashboardPayload["linha3"]["
   const change = dados.mix_change;
   return (
     <div className="chart-card">
-      <h3 style={{ fontSize: 12 }}>{t("chart.mix.titulo")}</h3>
+      <h3 style={{ fontSize: 12 }}>
+        {t("chart.mix.titulo")} <InfoTooltip text={t("chart.mix.legenda")} />
+      </h3>
       {run === null ? (
         <div className="empty-state" style={{ height: 40 }}>
           — {t("chart.mix.semOrcamento")}
