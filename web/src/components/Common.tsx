@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import type { StatusRagOuPausado } from "../types";
+import { useLanguage } from "../i18n/LanguageContext";
 
 export function Tooltip({ text, children }: { text: string; children: ReactNode }) {
   return (
@@ -19,9 +20,10 @@ export function StatusDot({ status }: { status: StatusRagOuPausado }) {
  * (Regra visual geral da entrega 4.)
  */
 export function ValorOuTraco({ valor, texto, motivoNulo }: { valor: number | null; texto: string; motivoNulo: string | null }) {
+  const { t } = useLanguage();
   if (valor === null) {
     return (
-      <Tooltip text={motivoNulo ?? "sem dado"}>
+      <Tooltip text={motivoNulo ?? t("geral.semDado")}>
         <span className="card-value is-muted">—</span>
       </Tooltip>
     );

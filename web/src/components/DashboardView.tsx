@@ -5,6 +5,7 @@ import { ProgressoPonderadoCard, TarefasBloqueadasCard, AlocacaoEquipeCard, Proj
 import { ThroughputChart, OrcamentoGastoChart, DistribuicaoStatusDonut, DesvioCustoChart, MixPortfolioBar } from "./Charts";
 import { ProjectsTable } from "./ProjectsTable";
 import { dataBR } from "../format";
+import { useLanguage } from "../i18n/LanguageContext";
 
 /**
  * O MESMO layout de dashboard (cards, gráficos, tabela) usado tanto na aba
@@ -24,12 +25,15 @@ export function DashboardView({
 }) {
   const [filtroSaude, setFiltroSaude] = useState<StatusRag | null>(null);
   const [alocacaoAberta, setAlocacaoAberta] = useState(false);
+  const { t } = useLanguage();
 
   return (
     <div>
       <div className="app-header">
         <h1>{titulo}</h1>
-        <span className="ref">Referência: {dataBR(dados.data_referencia)}</span>
+        <span className="ref">
+          {t("dashboard.referencia")}: {dataBR(dados.data_referencia)}
+        </span>
       </div>
 
       <div className="grid-4">

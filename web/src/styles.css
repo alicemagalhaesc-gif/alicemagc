@@ -172,9 +172,46 @@ body {
   color: var(--sidebar-active-text);
 }
 
+.sidebar-lang {
+  margin-top: auto;
+  padding: 12px 8px 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+.sidebar-lang-label {
+  display: block;
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--sidebar-text-muted);
+  margin-bottom: 6px;
+}
+.sidebar-lang select {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-size: 12px;
+  padding: 6px 8px;
+  border-radius: 6px;
+}
+.sidebar-lang select option {
+  color: #0f172a;
+}
+
 @media (max-width: 768px) {
   .app-shell {
     flex-direction: column;
+  }
+  .sidebar-lang {
+    margin-top: 0;
+    border-top: none;
+    padding: 0 0 0 8px;
+  }
+  .sidebar-lang-label {
+    display: none;
+  }
+  .sidebar-lang select {
+    width: auto;
   }
   .sidebar {
     width: 100%;

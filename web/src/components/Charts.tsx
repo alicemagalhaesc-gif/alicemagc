@@ -1,5 +1,6 @@
 import type { DashboardPayload } from "../types";
 import { moeda, pct, dataBR } from "../format";
+import { useLanguage } from "../i18n/LanguageContext";
 
 const CAT = ["var(--series-1)", "var(--series-2)", "var(--series-3)", "var(--series-4)", "var(--series-5)"];
 
@@ -16,15 +17,17 @@ export function ThroughputChart({
   dados: DashboardPayload["linha3"]["throughput_semanal"];
   dataInicioColeta: string | null;
 }) {
+  const { t } = useLanguage();
+
   if (dados.motivo_nulo || dados.semanas.length === 0) {
     const disponivelEm = dataInicioColeta ? addDiasIso(dataInicioColeta, 28) : null;
     return (
       <div className="chart-card">
-        <h3>Throughput Semanal</h3>
+        <h3>{t("chart.throughput.titulo")}</h3>
         <div className="empty-state">
           {dataInicioColeta
-            ? `Coleta iniciada em ${dataBR(dataInicioColeta)}. Dados disponíveis a partir de ${dataBR(disponivelEm)}.`
-            : "Coleta ainda não iniciada."}
+            ? `${t("chart.throughput.coletaIniciada")} ${dataBR(dataInicioColeta)}. ${t("chart.throughput.dadosDisponiveis")} ${dataBR(disponivelEm)}.`
+            : t("chart.throughput.coletaNaoIniciada")}
         </div>
       </div>
     );
@@ -51,8 +54,8 @@ export function ThroughputChart({
 
   return (
     <div className="chart-card">
-      <h3>Throughput Semanal</h3>
-      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label="Tarefas concluídas por semana, últimas 8 semanas">
+      <h3>{t("chart.throughput.titulo")}</h3>
+      <svg viewBox={`0 0 ${W} ${H}`} width="100%" role="img" aria-label={t("chart.throughput.titulo")}>
         <line x1={padL} y1={10 + alturaUtil} x2={W} y2={10 + alturaUtil} stroke="var(--gridline)" strokeWidth="1" />
         {dados.semanas.map((s, i) => {
           const x = padL + i * larguraBarra + larguraBarra * 0.2;
@@ -61,7 +64,7 @@ export function ThroughputChart({
           return (
             <g key={s.inicio}>
               <rect x={x} y={y} width={larguraBarra * 0.6} height={alturaBarra} rx="3" fill="var(--series-1)">
-                <title>{`${dataBR(s.inicio.slice(0, 10))}–${dataBR(s.fim.slice(0, 10))}: ${s.quantidade} concluídas`}</title>
+                <title>{`${dataBR(s.inicio.slice(0, 10))}–${dataBR(s.fim.slice(0, 10))}: ${s.quantidade}`}</title>
               </rect>
               <text x={x + larguraBarra * 0.3} y={H - 6} fontSize="9" fill="var(--text-muted)" textAnchor="middle">
                 {dataBR(s.inicio.slice(0, 10))}
@@ -73,24 +76,29 @@ export function ThroughputChart({
       </svg>
       <div className="legend-row">
         <span className="legend-item">
-          <span style={{ width: 10, height: 10, background: "var(--series-1)", borderRadius: 2, display: "inline-block" }} /> Concluídas/semana
+          <span style={{ width: 10, height: 10, background: "var(--series-1)", borderRadius: 2, display: "inline-block" }} /> {t("chart.throughput.legendaConcluidas")}
         </span>
         <span className="legend-item">
-          <span style={{ width: 14, height: 2, background: "var(--text-primary)", display: "inline-block" }} /> Média móvel 4 semanas
+          <span style={{ width: 14, height: 2, background: "var(--text-primary)", display: "inline-block" }} /> {t("chart.throughput.legendaMedia")}
         </span>
       </div>
-      {dataInicioColeta && <div className="watermark">Coleta iniciada em {dataBR(dataInicioColeta)}</div>}
+      {dataInicioColeta && (
+        <div className="watermark">
+          {t("chart.throughput.coletaIniciada")} {dataBR(dataInicioColeta)}
+        </div>
+      )}
     </div>
   );
 }
 
 export function OrcamentoGastoChart({ dados }: { dados: DashboardPayload["linha3"]["orcamento_vs_gasto"] }) {
+  const { t } = useLanguage();
   const itens = [...dados].sort((a, b) => (b.orcamento ?? 0) - (a.orcamento ?? 0)).slice(0, 8);
   const max = Math.max(1, ...itens.map((i) => Math.max(i.orcamento ?? 0, i.gasto ?? 0)));
 
   return (
     <div className="chart-card">
-      <h3>Orçamento vs. Gasto por Projeto</h3>
+      <h3>{t("chart.orcamentoGasto.titulo")}</h3>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {itens.map((i) => (
           <div key={i.id}>
@@ -110,10 +118,10 @@ export function OrcamentoGastoChart({ dados }: { dados: DashboardPayload["linha3
       </div>
       <div className="legend-row" style={{ marginTop: 10 }}>
         <span className="legend-item">
-          <span style={{ width: 10, height: 10, background: "var(--series-1)", borderRadius: 2, display: "inline-block" }} /> Orçamento
+          <span style={{ width: 10, height: 10, background: "var(--series-1)", borderRadius: 2, display: "inline-block" }} /> {t("chart.orcamentoGasto.orcamento")}
         </span>
         <span className="legend-item">
-          <span style={{ width: 10, height: 10, background: "var(--series-2)", borderRadius: 2, display: "inline-block" }} /> Gasto
+          <span style={{ width: 10, height: 10, background: "var(--series-2)", borderRadius: 2, display: "inline-block" }} /> {t("chart.orcamentoGasto.gasto")}
         </span>
       </div>
     </div>
@@ -121,6 +129,7 @@ export function OrcamentoGastoChart({ dados }: { dados: DashboardPayload["linha3
 }
 
 export function DistribuicaoStatusDonut({ dados }: { dados: DashboardPayload["linha3"]["distribuicao_status"] }) {
+  const { t } = useLanguage();
   const total = dados.reduce((s, d) => s + d.quantidade, 0);
   const raio = 60;
   const raioInterno = 36;
@@ -149,9 +158,9 @@ export function DistribuicaoStatusDonut({ dados }: { dados: DashboardPayload["li
 
   return (
     <div className="chart-card">
-      <h3>Distribuição de Status</h3>
+      <h3>{t("chart.distribuicao.titulo")}</h3>
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        <svg viewBox="0 0 140 140" width="140" height="140" role="img" aria-label="Distribuição de projetos por status">
+        <svg viewBox="0 0 140 140" width="140" height="140" role="img" aria-label={t("chart.distribuicao.titulo")}>
           {fatias.map((f) => (
             <path key={f.status} d={f.path} fill={f.cor}>
               <title>{`${f.status}: ${f.quantidade}`}</title>
@@ -175,11 +184,12 @@ export function DistribuicaoStatusDonut({ dados }: { dados: DashboardPayload["li
 }
 
 export function DesvioCustoChart({ dados }: { dados: DashboardPayload["linha3"]["desvio_custo"] }) {
+  const { t } = useLanguage();
   if (dados.length === 0) {
     return (
       <div className="chart-card">
-        <h3>Onde Está o Desvio de Custo</h3>
-        <div className="empty-state">Sem dado de custo suficiente.</div>
+        <h3>{t("chart.desvio.titulo")}</h3>
+        <div className="empty-state">{t("chart.desvio.vazio")}</div>
       </div>
     );
   }
@@ -187,7 +197,7 @@ export function DesvioCustoChart({ dados }: { dados: DashboardPayload["linha3"][
 
   return (
     <div className="chart-card">
-      <h3>Onde Está o Desvio de Custo</h3>
+      <h3>{t("chart.desvio.titulo")}</h3>
       <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
         {dados.map((d) => {
           const larguraPct = (Math.abs(d.variancia) / maxAbs) * 50;
@@ -217,27 +227,28 @@ export function DesvioCustoChart({ dados }: { dados: DashboardPayload["linha3"][
       <div style={{ marginTop: 8 }}>
         {dados.map((d) => (
           <div key={d.projetoId} style={{ display: "flex", justifyContent: "space-between", fontSize: 11, color: "var(--text-secondary)" }}>
-            <span>{d.nome ?? `Projeto ${d.projetoId}`}</span>
+            <span>{d.nome ?? `${t("tabela.projeto")} ${d.projetoId}`}</span>
             <span className="cell-num">
               {moeda(d.variancia)} · {pct(d.contribuicao, 0)}
             </span>
           </div>
         ))}
       </div>
-      <div className="chart-sub">Responde "por quê" quando o CPI do portfólio está vermelho.</div>
+      <div className="chart-sub">{t("chart.desvio.contexto")}</div>
     </div>
   );
 }
 
 export function MixPortfolioBar({ dados }: { dados: DashboardPayload["linha3"]["mix_portfolio"] }) {
+  const { t } = useLanguage();
   const run = dados.valor;
   const change = dados.mix_change;
   return (
     <div className="chart-card">
-      <h3 style={{ fontSize: 12 }}>Mix do Portfólio de Projetos</h3>
+      <h3 style={{ fontSize: 12 }}>{t("chart.mix.titulo")}</h3>
       {run === null ? (
         <div className="empty-state" style={{ height: 40 }}>
-          — sem orçamento cadastrado
+          — {t("chart.mix.semOrcamento")}
         </div>
       ) : (
         <>

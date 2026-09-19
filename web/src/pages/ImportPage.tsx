@@ -1,4 +1,6 @@
 import { useState } from "react";
+import { useLanguage } from "../i18n/LanguageContext";
+import type { ChaveTraducao } from "../i18n/translations";
 
 type Entidade = "projeto" | "tarefa" | "pessoa";
 
@@ -23,9 +25,14 @@ interface ResultadoImportacao {
   erros: { linha: number; motivo: string }[];
 }
 
-const LABEL_ENTIDADE: Record<Entidade, string> = { projeto: "Projetos", tarefa: "Tarefas", pessoa: "Pessoas" };
+const LABEL_ENTIDADE: Record<Entidade, ChaveTraducao> = {
+  projeto: "importar.projetos",
+  tarefa: "importar.tarefas",
+  pessoa: "importar.pessoas",
+};
 
 export function ImportPage() {
+  const { t } = useLanguage();
   const [entidade, setEntidade] = useState<Entidade>("projeto");
   const [arquivo, setArquivo] = useState<File | null>(null);
   const [preview, setPreview] = useState<PreviewImportacao | null>(null);
@@ -44,7 +51,7 @@ export function ImportPage() {
       form.append("arquivo", arquivo);
       form.append("entidade", entidade);
       const resp = await fetch("/api/import/preview", { method: "POST", body: form });
-      if (!resp.ok) throw new Error((await resp.json()).erro ?? "Falha ao ler o arquivo");
+      if (!resp.ok) throw new Error((await resp.json()).erro ?? t("importar.falhaLer"));
       const dados: PreviewImportacao = await resp.json();
       setPreview(dados);
       setMapeamento(dados.sugestaoMapeamento);
@@ -65,7 +72,7 @@ export function ImportPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ importId: preview.importId, mapeamento }),
       });
-      if (!resp.ok) throw new Error((await resp.json()).erro ?? "Falha ao importar");
+      if (!resp.ok) throw new Error((await resp.json()).erro ?? t("importar.falhaImportar"));
       const dados: ResultadoImportacao = await resp.json();
       setResultado(dados);
       setPreview(null);
@@ -82,13 +89,13 @@ export function ImportPage() {
 
   return (
     <div>
-      <h2 className="page-title">Importar Dados</h2>
-      <p className="page-sub">Suba uma planilha (.csv ou .xlsx) para cadastrar projetos, tarefas ou pessoas em lote.</p>
+      <h2 className="page-title">{t("importar.titulo")}</h2>
+      <p className="page-sub">{t("importar.subtitulo")}</p>
 
       <div className="chart-card">
         <div className="field-row">
           <label>
-            Tipo de dado:&nbsp;
+            {t("importar.tipoDado")}:&nbsp;
             <select
               value={entidade}
               onChange={(e) => {
@@ -97,18 +104,14 @@ export function ImportPage() {
                 setResultado(null);
               }}
             >
-              <option value="projeto">Projetos</option>
-              <option value="tarefa">Tarefas</option>
-              <option value="pessoa">Pessoas</option>
+              <option value="projeto">{t("importar.projetos")}</option>
+              <option value="tarefa">{t("importar.tarefas")}</option>
+              <option value="pessoa">{t("importar.pessoas")}</option>
             </select>
           </label>
-          <input
-            type="file"
-            accept=".csv,.xlsx"
-            onChange={(e) => setArquivo(e.target.files?.[0] ?? null)}
-          />
+          <input type="file" accept=".csv,.xlsx" onChange={(e) => setArquivo(e.target.files?.[0] ?? null)} />
           <button className="btn" disabled={!arquivo || carregando} onClick={analisarArquivo}>
-            {carregando ? "Lendo…" : "Analisar arquivo"}
+            {carregando ? t("importar.lendo") : t("importar.analisar")}
           </button>
         </div>
 
@@ -117,17 +120,18 @@ export function ImportPage() {
         {preview && (
           <>
             <p style={{ fontSize: 13, color: "var(--text-secondary)" }}>
-              {preview.totalLinhas} linha(s) encontrada(s) para <strong>{LABEL_ENTIDADE[entidade]}</strong>. Confira o mapeamento de
-              colunas abaixo (ajuste onde a detecção automática errar):
+              {preview.totalLinhas} {t("importar.linhasEncontradas")} <strong>{t(LABEL_ENTIDADE[entidade])}</strong>. {t("importar.confiraMapeamento")}
             </p>
 
             <table className="mapping-table">
               <thead>
                 <tr>
-                  <th>Coluna da planilha</th>
-                  <th>Mapeia para</th>
+                  <th>{t("importar.colunaPlanilha")}</th>
+                  <th>{t("importar.mapeiaPara")}</th>
                   {preview.linhasPreview.slice(0, 3).map((_, i) => (
-                    <th key={i}>Exemplo {i + 1}</th>
+                    <th key={i}>
+                      {t("importar.exemplo")} {i + 1}
+                    </th>
                   ))}
                 </tr>
               </thead>
@@ -140,7 +144,7 @@ export function ImportPage() {
                         value={mapeamento[coluna] ?? ""}
                         onChange={(e) => setMapeamento({ ...mapeamento, [coluna]: e.target.value || null })}
                       >
-                        <option value="">(ignorar)</option>
+                        <option value="">{t("importar.ignorar")}</option>
                         {preview.camposDisponiveis.map((c) => (
                           <option key={c.chave} value={c.chave}>
                             {c.label}
@@ -157,14 +161,10 @@ export function ImportPage() {
               </tbody>
             </table>
 
-            {!camposObrigatoriosMapeados && (
-              <div className="summary-box warn">
-                Mapeie todos os campos obrigatórios (marcados com *) antes de confirmar.
-              </div>
-            )}
+            {!camposObrigatoriosMapeados && <div className="summary-box warn">{t("importar.avisoObrigatorios")}</div>}
 
             <button className="btn" disabled={!camposObrigatoriosMapeados || carregando} onClick={confirmarImportacao}>
-              {carregando ? "Importando…" : `Confirmar importação (${preview.totalLinhas} linhas)`}
+              {carregando ? t("importar.importando") : `${t("importar.confirmar")} (${preview.totalLinhas} ${t("importar.linhas")})`}
             </button>
           </>
         )}
@@ -172,13 +172,13 @@ export function ImportPage() {
         {resultado && (
           <div className={`summary-box ${resultado.erros.length === 0 ? "ok" : "warn"}`}>
             <strong>
-              {resultado.sucesso} de {resultado.total} linha(s) importada(s) com sucesso.
+              {resultado.sucesso} {t("importar.resultado", { total: resultado.total })}
             </strong>
             {resultado.erros.length > 0 && (
               <ul>
                 {resultado.erros.map((e, i) => (
                   <li key={i}>
-                    Linha {e.linha}: {e.motivo}
+                    {t("importar.linha")} {e.linha}: {e.motivo}
                   </li>
                 ))}
               </ul>

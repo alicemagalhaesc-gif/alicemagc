@@ -1,12 +1,14 @@
 import type { DashboardPayload, StatusRag } from "../types";
 import { StatusDot, Tooltip } from "./Common";
 import { pct, moeda, dias, num } from "../format";
+import { useLanguage } from "../i18n/LanguageContext";
 
 function CelulaNumOuTraco({ valor, texto, motivo }: { valor: number | null; texto: string; motivo: string | null }) {
+  const { t } = useLanguage();
   if (valor === null) {
     return (
       <td className="cell-num cell-muted">
-        <Tooltip text={motivo ?? "sem dado"}>—</Tooltip>
+        <Tooltip text={motivo ?? t("geral.semDado")}>—</Tooltip>
       </td>
     );
   }
@@ -17,36 +19,41 @@ export function ProjectsTable({
   linhas,
   filtroSaude,
   onAbrirProjeto,
-  titulo = "Projetos Recentes",
+  titulo,
 }: {
   linhas: DashboardPayload["tabela_projetos"];
   filtroSaude: StatusRag | null;
   onAbrirProjeto: (id: number) => void;
   titulo?: string;
 }) {
+  const { t, idioma } = useLanguage();
   const visiveis = filtroSaude ? linhas.filter((l) => l.saude === filtroSaude) : linhas;
+  const tituloExibido = titulo ?? t("tabela.titulo");
 
   return (
     <div className="chart-card" style={{ overflowX: "auto" }}>
       <h3>
-        {titulo} {filtroSaude && <span style={{ fontWeight: 400, color: "var(--text-muted)" }}>· filtrado por {filtroSaude}</span>}
+        {tituloExibido}{" "}
+        {filtroSaude && (
+          <span style={{ fontWeight: 400, color: "var(--text-muted)" }}>
+            · {t("tabela.filtradoPor")} {filtroSaude}
+          </span>
+        )}
       </h3>
       <table className="projects-table">
         <thead>
           <tr>
-            <th>Saúde</th>
-            <th>Projeto</th>
-            <th>Área</th>
-            <th>Status</th>
-            <th>Progresso</th>
+            <th>{t("tabela.saude")}</th>
+            <th>{t("tabela.projeto")}</th>
+            <th>{t("tabela.area")}</th>
+            <th>{t("tabela.status")}</th>
+            <th>{t("tabela.progresso")}</th>
             <th>
-              <Tooltip text="Progresso dividido pelo prazo decorrido. Assume avanço linear; suprimido nos primeiros 20% do prazo.">
-                Ritmo
-              </Tooltip>
+              <Tooltip text={t("tabela.ritmoTooltip")}>{t("tabela.ritmo")}</Tooltip>
             </th>
-            <th>CPI</th>
-            <th>Dias de Atraso</th>
-            <th>Orçamento</th>
+            <th>{t("tabela.cpi")}</th>
+            <th>{t("tabela.diasAtraso")}</th>
+            <th>{t("tabela.orcamento")}</th>
           </tr>
         </thead>
         <tbody>
@@ -74,12 +81,12 @@ export function ProjectsTable({
                   {l.nome}
                 </button>
                 {l.dados_estimados && (
-                  <Tooltip text="Datas não preenchidas — indicadores de prazo indisponíveis. Regularize em Projetos > Regularizar.">
+                  <Tooltip text={t("tabela.avisoDadosEstimados")}>
                     <span className="icon-warn">⚠</span>
                   </Tooltip>
                 )}
                 {l.numero_revisoes_baseline >= 2 && (
-                  <Tooltip text={`Baseline revisada ${l.numero_revisoes_baseline} vezes.`}>
+                  <Tooltip text={t("tabela.baselineRevisada", { n: l.numero_revisoes_baseline })}>
                     <span className="icon-info">ⓘ</span>
                   </Tooltip>
                 )}
@@ -91,8 +98,8 @@ export function ProjectsTable({
               <CelulaNumOuTraco valor={l.cpi} texto={num(l.cpi, 2)} motivo={l.cpi_motivo_nulo} />
               <CelulaNumOuTraco
                 valor={l.dias_atraso ?? l.slip_dias}
-                texto={l.dias_atraso !== null ? dias(l.dias_atraso) : dias(l.slip_dias)}
-                motivo={l.status === "Cancelado" ? "não aplicável a projeto cancelado" : "dado ausente"}
+                texto={l.dias_atraso !== null ? dias(l.dias_atraso, idioma) : dias(l.slip_dias, idioma)}
+                motivo={l.status === "Cancelado" ? t("geral.naoAplicavelCancelado") : t("geral.dadoAusente")}
               />
               <td className="cell-num">{moeda(l.orcamento)}</td>
             </tr>

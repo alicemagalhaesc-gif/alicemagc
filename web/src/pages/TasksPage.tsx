@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Modal, CampoForm } from "../components/Modal";
+import { useLanguage } from "../i18n/LanguageContext";
 
 interface Tarefa {
   id: number;
@@ -32,6 +33,7 @@ function classeStatus(status: string): string {
 }
 
 export function TasksPage() {
+  const { t } = useLanguage();
   const [tarefas, setTarefas] = useState<Tarefa[] | null>(null);
   const [projetos, setProjetos] = useState<ProjetoOpcao[]>([]);
   const [pessoas, setPessoas] = useState<PessoaOpcao[]>([]);
@@ -67,17 +69,17 @@ export function TasksPage() {
     setCriando(true);
   }
 
-  function abrirEdicao(t: Tarefa) {
+  function abrirEdicao(tarefa: Tarefa) {
     setForm({
-      nome: t.nome,
-      projetoId: String(t.projeto.id),
-      status: t.status,
-      prioridade: t.prioridade,
-      estimativa_horas: t.estimativa_horas === null ? "" : String(t.estimativa_horas),
-      responsavelId: t.responsavel ? String(t.responsavel.id) : "",
-      data_fim_planejada: t.data_fim_planejada ? t.data_fim_planejada.slice(0, 10) : "",
+      nome: tarefa.nome,
+      projetoId: String(tarefa.projeto.id),
+      status: tarefa.status,
+      prioridade: tarefa.prioridade,
+      estimativa_horas: tarefa.estimativa_horas === null ? "" : String(tarefa.estimativa_horas),
+      responsavelId: tarefa.responsavel ? String(tarefa.responsavel.id) : "",
+      data_fim_planejada: tarefa.data_fim_planejada ? tarefa.data_fim_planejada.slice(0, 10) : "",
     });
-    setEditando(t);
+    setEditando(tarefa);
   }
 
   async function salvar() {
@@ -95,7 +97,7 @@ export function TasksPage() {
         };
         if (mudouStatus) payload.novoStatus = form.status;
         const resp = await fetch(`/api/tarefas/${editando.id}`, { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-        if (!resp.ok) throw new Error((await resp.json()).erro ?? "Falha ao salvar");
+        if (!resp.ok) throw new Error((await resp.json()).erro ?? t("form.falhaSalvar"));
       } else {
         const payload = {
           nome: form.nome,
@@ -107,7 +109,7 @@ export function TasksPage() {
           data_fim_planejada: form.data_fim_planejada === "" ? null : form.data_fim_planejada,
         };
         const resp = await fetch("/api/tarefas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-        if (!resp.ok) throw new Error((await resp.json()).erro ?? "Falha ao criar");
+        if (!resp.ok) throw new Error((await resp.json()).erro ?? t("form.falhaCriar"));
       }
       setEditando(null);
       setCriando(false);
@@ -119,11 +121,11 @@ export function TasksPage() {
     }
   }
 
-  async function excluir(t: Tarefa) {
-    if (!confirm(`Excluir a tarefa "${t.nome}"? Isso também apaga o histórico de eventos dela.`)) return;
+  async function excluir(tarefa: Tarefa) {
+    if (!confirm(t("tarefas.confirmarExcluir", { nome: tarefa.nome }))) return;
     try {
-      const resp = await fetch(`/api/tarefas/${t.id}`, { method: "DELETE" });
-      if (!resp.ok && resp.status !== 204) throw new Error((await resp.json()).erro ?? "Falha ao excluir");
+      const resp = await fetch(`/api/tarefas/${tarefa.id}`, { method: "DELETE" });
+      if (!resp.ok && resp.status !== 204) throw new Error((await resp.json()).erro ?? t("form.falhaExcluir"));
       carregar();
     } catch (e) {
       setErro((e as Error).message);
@@ -135,58 +137,58 @@ export function TasksPage() {
   return (
     <div>
       <div className="app-header">
-        <h1>Tarefas</h1>
+        <h1>{t("tarefas.titulo")}</h1>
         <button className="btn" onClick={abrirNova} disabled={projetos.length === 0}>
-          + Nova Tarefa
+          {t("tarefas.nova")}
         </button>
       </div>
-      <p className="page-sub">Acompanhe as tarefas vinculadas aos projetos.</p>
+      <p className="page-sub">{t("tarefas.subtitulo")}</p>
 
       <div className="field-row">
-        <input type="text" placeholder="Buscar por título ou responsável…" value={busca} onChange={(e) => setBusca(e.target.value)} style={{ minWidth: 260 }} />
+        <input type="text" placeholder={t("tarefas.buscar")} value={busca} onChange={(e) => setBusca(e.target.value)} style={{ minWidth: 260 }} />
       </div>
 
       <div className="pill-tabs">
         {STATUS_FILTROS.map((s) => (
           <button key={s} className={filtroStatus === s ? "is-active" : ""} onClick={() => setFiltroStatus(s)}>
-            {s}
+            {s === "Todas" ? t("tarefas.todas") : s}
           </button>
         ))}
       </div>
 
       {erro && <div className="summary-box warn">{erro}</div>}
-      {!tarefas && <div className="loading">Carregando…</div>}
+      {!tarefas && <div className="loading">{t("geral.carregando")}</div>}
 
       {tarefas && (
         <div className="chart-card" style={{ overflowX: "auto" }}>
           <table className="projects-table">
             <thead>
               <tr>
-                <th>Tarefa</th>
-                <th>Projeto</th>
-                <th>Status</th>
-                <th>Prioridade</th>
-                <th>Responsável</th>
-                <th>Estimativa</th>
-                <th>Ações</th>
+                <th>{t("tarefas.tarefa")}</th>
+                <th>{t("tarefas.projeto")}</th>
+                <th>{t("tarefas.status")}</th>
+                <th>{t("tarefas.prioridade")}</th>
+                <th>{t("tarefas.responsavel")}</th>
+                <th>{t("tarefas.estimativa")}</th>
+                <th>{t("tarefas.acoes")}</th>
               </tr>
             </thead>
             <tbody>
-              {visiveis.map((t) => (
-                <tr key={t.id}>
-                  <td>{t.nome}</td>
-                  <td>{t.projeto.nome}</td>
+              {visiveis.map((tarefa) => (
+                <tr key={tarefa.id}>
+                  <td>{tarefa.nome}</td>
+                  <td>{tarefa.projeto.nome}</td>
                   <td>
-                    <span className={`status-pill ${classeStatus(t.status)}`}>{t.status}</span>
+                    <span className={`status-pill ${classeStatus(tarefa.status)}`}>{tarefa.status}</span>
                   </td>
-                  <td>{t.prioridade}</td>
-                  <td>{t.responsavel?.nome ?? "—"}</td>
-                  <td className="cell-num">{t.estimativa_horas === null ? "—" : `${t.estimativa_horas}h`}</td>
+                  <td>{tarefa.prioridade}</td>
+                  <td>{tarefa.responsavel?.nome ?? "—"}</td>
+                  <td className="cell-num">{tarefa.estimativa_horas === null ? "—" : `${tarefa.estimativa_horas}h`}</td>
                   <td className="table-actions">
-                    <button onClick={() => abrirEdicao(t)} title="Editar">
+                    <button onClick={() => abrirEdicao(tarefa)} title={t("form.editarTooltip")}>
                       ✎
                     </button>
-                    <button className="danger" onClick={() => excluir(t)} title="Excluir">
+                    <button className="danger" onClick={() => excluir(tarefa)} title={t("form.excluirTooltip")}>
                       🗑
                     </button>
                   </td>
@@ -195,7 +197,7 @@ export function TasksPage() {
               {visiveis.length === 0 && (
                 <tr>
                   <td colSpan={7} className="cell-muted" style={{ textAlign: "center", padding: 20 }}>
-                    Nenhuma tarefa encontrada.
+                    {t("tarefas.nenhuma")}
                   </td>
                 </tr>
               )}
@@ -205,12 +207,12 @@ export function TasksPage() {
       )}
 
       {modalAberto && (
-        <Modal titulo={editando ? "Editar Tarefa" : "Nova Tarefa"} onFechar={() => (setEditando(null), setCriando(false))}>
-          <CampoForm label="Nome *">
+        <Modal titulo={editando ? t("tarefas.editar") : t("tarefas.novaTitulo")} onFechar={() => (setEditando(null), setCriando(false))}>
+          <CampoForm label={t("form.nomeObrigatorio")}>
             <input type="text" value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} autoFocus />
           </CampoForm>
           {!editando && (
-            <CampoForm label="Projeto *">
+            <CampoForm label={t("tarefas.projetoObrigatorio")}>
               <select value={form.projetoId} onChange={(e) => setForm({ ...form, projetoId: e.target.value })}>
                 {projetos.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -220,7 +222,7 @@ export function TasksPage() {
               </select>
             </CampoForm>
           )}
-          <CampoForm label="Status">
+          <CampoForm label={t("tarefas.status")}>
             <select value={form.status} onChange={(e) => setForm({ ...form, status: e.target.value })}>
               {STATUS_OPCOES.map((s) => (
                 <option key={s} value={s}>
@@ -229,7 +231,7 @@ export function TasksPage() {
               ))}
             </select>
           </CampoForm>
-          <CampoForm label="Prioridade">
+          <CampoForm label={t("tarefas.prioridade")}>
             <select value={form.prioridade} onChange={(e) => setForm({ ...form, prioridade: e.target.value })}>
               {PRIORIDADES.map((p) => (
                 <option key={p} value={p}>
@@ -238,9 +240,9 @@ export function TasksPage() {
               ))}
             </select>
           </CampoForm>
-          <CampoForm label="Responsável">
+          <CampoForm label={t("tarefas.responsavel")}>
             <select value={form.responsavelId} onChange={(e) => setForm({ ...form, responsavelId: e.target.value })}>
-              <option value="">(sem responsável)</option>
+              <option value="">{t("tarefas.semResponsavel")}</option>
               {pessoas.map((p) => (
                 <option key={p.id} value={p.id}>
                   {p.nome}
@@ -248,14 +250,14 @@ export function TasksPage() {
               ))}
             </select>
           </CampoForm>
-          <CampoForm label="Estimativa (horas)">
+          <CampoForm label={t("tarefas.estimativaLabel")}>
             <input type="number" value={form.estimativa_horas} onChange={(e) => setForm({ ...form, estimativa_horas: e.target.value })} />
           </CampoForm>
-          <CampoForm label="Data Fim Planejada">
+          <CampoForm label={t("tarefas.prazo")}>
             <input type="date" value={form.data_fim_planejada} onChange={(e) => setForm({ ...form, data_fim_planejada: e.target.value })} />
           </CampoForm>
           <button className="btn" disabled={!form.nome.trim() || (!editando && !form.projetoId) || salvando} onClick={salvar}>
-            {salvando ? "Salvando…" : "Salvar"}
+            {salvando ? t("form.salvando") : t("form.salvar")}
           </button>
         </Modal>
       )}

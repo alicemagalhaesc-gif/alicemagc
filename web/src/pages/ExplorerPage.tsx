@@ -1,4 +1,6 @@
 import { useEffect, useState } from "react";
+import { useLanguage } from "../i18n/LanguageContext";
+import type { ChaveTraducao } from "../i18n/translations";
 
 type Entidade = "projeto" | "tarefa" | "pessoa";
 type Operador = "=" | "!=" | ">" | ">=" | "<" | "<=" | "contem" | "vazio" | "nao_vazio";
@@ -29,24 +31,30 @@ interface Resultado {
   truncado: boolean;
 }
 
-const OPERADORES: { valor: Operador; label: string }[] = [
-  { valor: "=", label: "é igual a" },
-  { valor: "!=", label: "é diferente de" },
-  { valor: ">", label: "maior que" },
-  { valor: ">=", label: "maior ou igual a" },
-  { valor: "<", label: "menor que" },
-  { valor: "<=", label: "menor ou igual a" },
-  { valor: "contem", label: "contém" },
-  { valor: "vazio", label: "está vazio" },
-  { valor: "nao_vazio", label: "não está vazio" },
+const OPERADORES: { valor: Operador; chave: ChaveTraducao }[] = [
+  { valor: "=", chave: "explorar.opIgual" },
+  { valor: "!=", chave: "explorar.opDiferente" },
+  { valor: ">", chave: "explorar.opMaior" },
+  { valor: ">=", chave: "explorar.opMaiorIgual" },
+  { valor: "<", chave: "explorar.opMenor" },
+  { valor: "<=", chave: "explorar.opMenorIgual" },
+  { valor: "contem", chave: "explorar.opContem" },
+  { valor: "vazio", chave: "explorar.opVazio" },
+  { valor: "nao_vazio", chave: "explorar.opNaoVazio" },
 ];
 
-const FUNCOES: { valor: FuncaoAgregacao; label: string }[] = [
-  { valor: "soma", label: "soma" },
-  { valor: "media", label: "média" },
-  { valor: "min", label: "mínimo" },
-  { valor: "max", label: "máximo" },
+const FUNCOES: { valor: FuncaoAgregacao; chave: ChaveTraducao }[] = [
+  { valor: "soma", chave: "explorar.funcaoSoma" },
+  { valor: "media", chave: "explorar.funcaoMedia" },
+  { valor: "min", chave: "explorar.funcaoMin" },
+  { valor: "max", chave: "explorar.funcaoMax" },
 ];
+
+const LABEL_ENTIDADE: Record<Entidade, ChaveTraducao> = {
+  projeto: "importar.projetos",
+  tarefa: "importar.tarefas",
+  pessoa: "importar.pessoas",
+};
 
 function paraCsv(colunas: string[], linhas: Record<string, unknown>[]): string {
   const escapar = (v: unknown) => `"${String(v ?? "").replace(/"/g, '""')}"`;
@@ -56,6 +64,7 @@ function paraCsv(colunas: string[], linhas: Record<string, unknown>[]): string {
 }
 
 export function ExplorerPage() {
+  const { t } = useLanguage();
   const [entidades, setEntidades] = useState<Record<Entidade, { label: string; campos: DefinicaoCampo[] }> | null>(null);
   const [entidade, setEntidade] = useState<Entidade>("projeto");
   const [camposSelecionados, setCamposSelecionados] = useState<string[]>([]);
@@ -122,7 +131,7 @@ export function ExplorerPage() {
           ordenarDirecao,
         }),
       });
-      if (!resp.ok) throw new Error((await resp.json()).erro ?? "Falha na consulta");
+      if (!resp.ok) throw new Error((await resp.json()).erro ?? t("explorar.falhaConsulta"));
       setResultado(await resp.json());
     } catch (e) {
       setErro((e as Error).message);
@@ -143,21 +152,21 @@ export function ExplorerPage() {
     URL.revokeObjectURL(url);
   }
 
-  if (!entidades) return <div className="loading">Carregando…</div>;
+  if (!entidades) return <div className="loading">{t("geral.carregando")}</div>;
 
   return (
     <div>
-      <h2 className="page-title">Explorar Dados</h2>
-      <p className="page-sub">Filtre, agrupe e some sem escrever consulta — escolha as opções abaixo.</p>
+      <h2 className="page-title">{t("explorar.titulo")}</h2>
+      <p className="page-sub">{t("explorar.subtitulo")}</p>
 
       <div className="chart-card">
         <div className="field-row">
           <label>
-            Fonte:&nbsp;
+            {t("explorar.fonte")}:&nbsp;
             <select value={entidade} onChange={(e) => trocarEntidade(e.target.value as Entidade)}>
-              {Object.entries(entidades).map(([chave, def]) => (
+              {Object.keys(entidades).map((chave) => (
                 <option key={chave} value={chave}>
-                  {def.label}
+                  {t(LABEL_ENTIDADE[chave as Entidade])}
                 </option>
               ))}
             </select>
@@ -165,7 +174,7 @@ export function ExplorerPage() {
         </div>
 
         <div style={{ marginTop: 8 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6 }}>Colunas a exibir</div>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6 }}>{t("explorar.colunasExibir")}</div>
           <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
             {camposEntidade.map((c) => (
               <label key={c.chave} className="chip" style={{ cursor: "pointer" }}>
@@ -185,7 +194,7 @@ export function ExplorerPage() {
         </div>
 
         <div style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6 }}>Filtros</div>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6 }}>{t("explorar.filtros")}</div>
           {filtros.map((f, i) => {
             const campo = camposEntidade.find((c) => c.chave === f.campo);
             const precisaValor = f.operador !== "vazio" && f.operador !== "nao_vazio";
@@ -201,14 +210,14 @@ export function ExplorerPage() {
                 <select value={f.operador} onChange={(e) => atualizarFiltro(i, { operador: e.target.value as Operador })}>
                   {OPERADORES.map((o) => (
                     <option key={o.valor} value={o.valor}>
-                      {o.label}
+                      {t(o.chave)}
                     </option>
                   ))}
                 </select>
                 {precisaValor ? (
                   campo?.tipo === "enum" ? (
                     <select value={f.valor ?? ""} onChange={(e) => atualizarFiltro(i, { valor: e.target.value })}>
-                      <option value="">(escolha)</option>
+                      <option value="">{t("explorar.escolha")}</option>
                       {campo.opcoes?.map((op) => (
                         <option key={op} value={op}>
                           {op}
@@ -217,14 +226,14 @@ export function ExplorerPage() {
                     </select>
                   ) : campo?.tipo === "boolean" ? (
                     <select value={f.valor ?? ""} onChange={(e) => atualizarFiltro(i, { valor: e.target.value })}>
-                      <option value="">(escolha)</option>
-                      <option value="true">Sim</option>
-                      <option value="false">Não</option>
+                      <option value="">{t("explorar.escolha")}</option>
+                      <option value="true">{t("explorar.sim")}</option>
+                      <option value="false">{t("explorar.nao")}</option>
                     </select>
                   ) : (
                     <input
                       type={campo?.tipo === "number" ? "number" : campo?.tipo === "date" ? "text" : "text"}
-                      placeholder={campo?.tipo === "date" ? "AAAA-MM-DD" : "valor"}
+                      placeholder={campo?.tipo === "date" ? t("explorar.formatoData") : t("explorar.valor")}
                       value={f.valor ?? ""}
                       onChange={(e) => atualizarFiltro(i, { valor: e.target.value })}
                     />
@@ -233,23 +242,21 @@ export function ExplorerPage() {
                   <span />
                 )}
                 <button className="btn secondary" onClick={() => removerFiltro(i)}>
-                  Remover
+                  {t("explorar.remover")}
                 </button>
               </div>
             );
           })}
           <button className="btn secondary" onClick={adicionarFiltro}>
-            + Adicionar filtro
+            {t("explorar.adicionarFiltro")}
           </button>
         </div>
 
         <div style={{ marginTop: 16 }}>
-          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6 }}>
-            Agrupar por (opcional — vira uma tabela dinâmica)
-          </div>
+          <div style={{ fontSize: 12, fontWeight: 600, color: "var(--text-secondary)", marginBottom: 6 }}>{t("explorar.agruparPor")}</div>
           <div className="field-row">
             <select value={agruparPor} onChange={(e) => setAgruparPor(e.target.value)}>
-              <option value="">(sem agrupamento)</option>
+              <option value="">{t("explorar.semAgrupamento")}</option>
               {camposEntidade.map((c) => (
                 <option key={c.chave} value={c.chave}>
                   {c.label}
@@ -268,7 +275,7 @@ export function ExplorerPage() {
                   >
                     {FUNCOES.map((f) => (
                       <option key={f.valor} value={f.valor}>
-                        {f.label}
+                        {t(f.chave)}
                       </option>
                     ))}
                   </select>
@@ -285,12 +292,12 @@ export function ExplorerPage() {
                       ))}
                   </select>
                   <button className="btn secondary" onClick={() => setAgregacoes(agregacoes.filter((_, idx) => idx !== i))}>
-                    Remover
+                    {t("explorar.remover")}
                   </button>
                 </div>
               ))}
               <button className="btn secondary" onClick={adicionarAgregacao}>
-                + Adicionar soma/média/etc.
+                {t("explorar.adicionarAgregacao")}
               </button>
             </>
           )}
@@ -299,9 +306,9 @@ export function ExplorerPage() {
         {!agruparPor && (
           <div className="field-row" style={{ marginTop: 16 }}>
             <label>
-              Ordenar por:&nbsp;
+              {t("explorar.ordenarPor")}:&nbsp;
               <select value={ordenarPor} onChange={(e) => setOrdenarPor(e.target.value)}>
-                <option value="">(padrão)</option>
+                <option value="">{t("explorar.padrao")}</option>
                 {camposEntidade.map((c) => (
                   <option key={c.chave} value={c.chave}>
                     {c.label}
@@ -310,19 +317,19 @@ export function ExplorerPage() {
               </select>
             </label>
             <select value={ordenarDirecao} onChange={(e) => setOrdenarDirecao(e.target.value as "asc" | "desc")}>
-              <option value="asc">crescente</option>
-              <option value="desc">decrescente</option>
+              <option value="asc">{t("explorar.crescente")}</option>
+              <option value="desc">{t("explorar.decrescente")}</option>
             </select>
           </div>
         )}
 
         <div style={{ marginTop: 16, display: "flex", gap: 8 }}>
           <button className="btn" onClick={executar} disabled={carregando}>
-            {carregando ? "Consultando…" : "Executar"}
+            {carregando ? t("explorar.consultando") : t("explorar.executar")}
           </button>
           {resultado && (
             <button className="btn secondary" onClick={exportarCsv}>
-              Exportar CSV
+              {t("explorar.exportarCsv")}
             </button>
           )}
         </div>
@@ -333,8 +340,8 @@ export function ExplorerPage() {
       {resultado && (
         <div className="chart-card" style={{ marginTop: 14, overflowX: "auto" }}>
           <h3>
-            Resultado ({resultado.total}
-            {resultado.truncado ? "+, limitado a 500" : ""})
+            {t("explorar.resultado")} ({resultado.total}
+            {resultado.truncado ? t("explorar.limitado") : ""})
           </h3>
           <table className="projects-table">
             <thead>

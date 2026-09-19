@@ -2,10 +2,12 @@ import { useEffect, useState } from "react";
 import { buscarDashboard } from "../api";
 import type { DashboardPayload } from "../types";
 import { DashboardView } from "../components/DashboardView";
+import { useLanguage } from "../i18n/LanguageContext";
 
 export function DashboardPage({ onAbrirProjeto }: { onAbrirProjeto: (id: number) => void }) {
   const [dados, setDados] = useState<DashboardPayload | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const { t } = useLanguage();
 
   useEffect(() => {
     buscarDashboard()
@@ -13,8 +15,13 @@ export function DashboardPage({ onAbrirProjeto }: { onAbrirProjeto: (id: number)
       .catch((e) => setErro(e.message));
   }, []);
 
-  if (erro) return <div className="error">Erro ao carregar dashboard: {erro}</div>;
-  if (!dados) return <div className="loading">Carregando…</div>;
+  if (erro)
+    return (
+      <div className="error">
+        {t("geral.erroCarregarDashboard")}: {erro}
+      </div>
+    );
+  if (!dados) return <div className="loading">{t("geral.carregando")}</div>;
 
-  return <DashboardView dados={dados} titulo="Dashboard do Portfólio" onAbrirProjeto={onAbrirProjeto} />;
+  return <DashboardView dados={dados} titulo={t("dashboard.titulo")} onAbrirProjeto={onAbrirProjeto} />;
 }
