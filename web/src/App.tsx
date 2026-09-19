@@ -17,16 +17,18 @@ export default function App() {
   }
 
   return (
-    <div className="app">
+    <div className="app-shell">
       <Nav ativa={aba} onMudar={setAba} />
-      {aba === "dashboard" && <DashboardPage onAbrirProjeto={abrirProjeto} />}
-      {aba === "projetos" && (
-        <ProjectListPage projetoSelecionadoId={projetoSelecionado} onSelecionarProjeto={setProjetoSelecionado} />
-      )}
-      {aba === "pessoas" && <PeoplePage />}
-      {aba === "tarefas" && <TasksPage />}
-      {aba === "importar" && <ImportPage />}
-      {aba === "explorar" && <ExplorerPage />}
+      <main className="app">
+        {aba === "dashboard" && <DashboardPage onAbrirProjeto={abrirProjeto} />}
+        {aba === "projetos" && (
+          <ProjectListPage projetoSelecionadoId={projetoSelecionado} onSelecionarProjeto={setProjetoSelecionado} />
+        )}
+        {aba === "pessoas" && <PeoplePage />}
+        {aba === "tarefas" && <TasksPage />}
+        {aba === "importar" && <ImportPage />}
+        {aba === "explorar" && <ExplorerPage />}
+      </main>
     </div>
   );
 }

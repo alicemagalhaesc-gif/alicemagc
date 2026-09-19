@@ -1,21 +1,33 @@
 export type Aba = "dashboard" | "projetos" | "pessoas" | "tarefas" | "importar" | "explorar";
 
+const ITENS: { chave: Aba; label: string; icone: string }[] = [
+  { chave: "dashboard", label: "Dashboard", icone: "▦" },
+  { chave: "projetos", label: "Projetos", icone: "▤" },
+  { chave: "pessoas", label: "Pessoas", icone: "◍" },
+  { chave: "tarefas", label: "Tarefas", icone: "☑" },
+  { chave: "importar", label: "Importar Dados", icone: "⇧" },
+  { chave: "explorar", label: "Explorar Dados", icone: "⌕" },
+];
+
 export function Nav({ ativa, onMudar }: { ativa: Aba; onMudar: (a: Aba) => void }) {
-  const itens: { chave: Aba; label: string }[] = [
-    { chave: "dashboard", label: "Dashboard" },
-    { chave: "projetos", label: "Projetos" },
-    { chave: "pessoas", label: "Pessoas" },
-    { chave: "tarefas", label: "Tarefas" },
-    { chave: "importar", label: "Importar Dados" },
-    { chave: "explorar", label: "Explorar Dados" },
-  ];
   return (
-    <nav className="nav-tabs">
-      {itens.map((i) => (
-        <button key={i.chave} className={`nav-tab${ativa === i.chave ? " is-active" : ""}`} onClick={() => onMudar(i.chave)}>
-          {i.label}
-        </button>
-      ))}
-    </nav>
+    <aside className="sidebar">
+      <div className="sidebar-brand">
+        <span className="sidebar-brand-mark">PM</span>
+        <div>
+          <div className="sidebar-brand-title">Portfólio</div>
+          <div className="sidebar-brand-sub">Gestão de Projetos</div>
+        </div>
+      </div>
+
+      <nav className="sidebar-nav">
+        {ITENS.map((i) => (
+          <button key={i.chave} className={`sidebar-link${ativa === i.chave ? " is-active" : ""}`} onClick={() => onMudar(i.chave)}>
+            <span className="sidebar-link-icon">{i.icone}</span>
+            {i.label}
+          </button>
+        ))}
+      </nav>
+    </aside>
   );
 }
