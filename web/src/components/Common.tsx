@@ -11,6 +11,17 @@ export function Tooltip({ text, children }: { text: string; children: ReactNode 
   );
 }
 
+/** Ícone de legenda reaproveitado em cards, gráficos e cabeçalhos de tabela. */
+export function InfoTooltip({ text }: { text: string }) {
+  return (
+    <Tooltip text={text}>
+      <span className="icon-info" aria-label="info">
+        ⓘ
+      </span>
+    </Tooltip>
+  );
+}
+
 export function StatusDot({ status }: { status: StatusRagOuPausado }) {
   return <span className={`status-dot ${status}`} aria-label={`status ${status}`} title={status} />;
 }
@@ -33,11 +44,13 @@ export function ValorOuTraco({ valor, texto, motivoNulo }: { valor: number | nul
 
 export function Card({
   titulo,
+  legenda,
   status,
   onClick,
   children,
 }: {
   titulo: string;
+  legenda?: string;
   status?: StatusRagOuPausado;
   onClick?: () => void;
   children: ReactNode;
@@ -46,6 +59,7 @@ export function Card({
     <div className={`card${onClick ? " is-clickable" : ""}`} onClick={onClick} role={onClick ? "button" : undefined}>
       <div className="card-title">
         <span>{titulo}</span>
+        {legenda && <InfoTooltip text={legenda} />}
         {status && <StatusDot status={status} />}
       </div>
       {children}

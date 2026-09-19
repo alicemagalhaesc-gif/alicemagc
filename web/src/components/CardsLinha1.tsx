@@ -18,7 +18,7 @@ export function SaudePortfolioCard({
   const total = dados.contagem.verde + dados.contagem.amarelo + dados.contagem.vermelho + dados.contagem.cinza;
 
   return (
-    <Card titulo={t("card.saude.titulo")}>
+    <Card titulo={t("card.saude.titulo")} legenda={t("card.saude.legenda")}>
       <div className="card-main">
         <span className="card-value">{total > 0 ? pct(dados.pct_verde, 0) : "—"}</span>
         <span style={{ fontSize: 12, color: "var(--text-muted)" }}>{t("card.saude.emVerde")}</span>
@@ -65,7 +65,7 @@ export function OtdCard({ dados }: { dados: DashboardPayload["linha1"]["otd"] })
   const { t } = useLanguage();
   const mostrarContagem = dados.n !== null && dados.n < 5;
   return (
-    <Card titulo={t("card.otd.titulo")} status={dados.status}>
+    <Card titulo={t("card.otd.titulo")} legenda={t("card.otd.legenda")} status={dados.status}>
       {mostrarContagem ? (
         <Tooltip text={t("card.otd.tooltipAmostra")}>
           <span className="card-value">
@@ -86,7 +86,7 @@ export function CpiPortfolioCard({ dados }: { dados: DashboardPayload["linha1"][
   const { t } = useLanguage();
   const eac = dados.eac_portfolio;
   return (
-    <Card titulo={t("card.cpi.titulo")} status={dados.status}>
+    <Card titulo={t("card.cpi.titulo")} legenda={t("card.cpi.legenda")} status={dados.status}>
       <div className="card-main">
         <ValorOuTraco valor={dados.valor} texto={num2(dados.valor)} motivoNulo={dados.motivo_nulo} />
       </div>
@@ -107,7 +107,7 @@ export function CpiPortfolioCard({ dados }: { dados: DashboardPayload["linha1"][
 export function AtrasadosCard({ dados }: { dados: DashboardPayload["linha1"]["projetos_atrasados"] }) {
   const { t, idioma } = useLanguage();
   return (
-    <Card titulo={t("card.atrasados.titulo")} status={dados.status}>
+    <Card titulo={t("card.atrasados.titulo")} legenda={t("card.atrasados.legenda")} status={dados.status}>
       <div className="card-main">
         <ValorOuTraco valor={dados.valor} texto={`${dados.atrasados} · ${pct(dados.valor, 0)}`} motivoNulo={dados.motivo_nulo} />
       </div>
