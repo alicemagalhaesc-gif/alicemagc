@@ -8,6 +8,9 @@ import { prisma, garantirTriggersDeImutabilidade } from "./db";
 import { montarPayloadDashboard } from "./domain/dashboardService";
 import { prepararPreview, confirmarImportacao, EntidadeImportavel } from "./domain/importService";
 import { executarConsulta, ENTIDADES, ConsultaExplorer } from "./domain/explorerService";
+import { listarPessoas, criarPessoa, atualizarPessoa, excluirPessoa } from "./domain/pessoaService";
+import { listarTarefas, criarTarefa, atualizarTarefa, atualizarStatusTarefa, excluirTarefa } from "./domain/tarefaService";
+import { STATUS_TAREFA, PRIORIDADE_PROJETO } from "./domain/constants";
 
 const app = express();
 app.use(cors());
@@ -75,6 +78,106 @@ app.post("/api/explorer/query", async (req, res) => {
     console.error(err);
     res.status(500).json({ erro: (err as Error).message });
   }
+});
+
+// --- Pessoas (recursos do escritório de projetos) ---
+
+app.get("/api/pessoas", async (_req, res) => {
+  try {
+    res.json(await listarPessoas());
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: "Falha ao listar pessoas" });
+  }
+});
+
+app.post("/api/pessoas", async (req, res) => {
+  try {
+    res.status(201).json(await criarPessoa(req.body));
+  } catch (err) {
+    res.status(400).json({ erro: (err as Error).message });
+  }
+});
+
+app.put("/api/pessoas/:id", async (req, res) => {
+  try {
+    res.json(await atualizarPessoa(Number(req.params.id), req.body));
+  } catch (err) {
+    res.status(400).json({ erro: (err as Error).message });
+  }
+});
+
+app.delete("/api/pessoas/:id", async (req, res) => {
+  try {
+    await excluirPessoa(Number(req.params.id));
+    res.status(204).end();
+  } catch (err) {
+    res.status(400).json({ erro: (err as Error).message });
+  }
+});
+
+// --- Tarefas ---
+
+app.get("/api/tarefas", async (_req, res) => {
+  try {
+    res.json(await listarTarefas());
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: "Falha ao listar tarefas" });
+  }
+});
+
+app.post("/api/tarefas", async (req, res) => {
+  try {
+    res.status(201).json(await criarTarefa(req.body));
+  } catch (err) {
+    res.status(400).json({ erro: (err as Error).message });
+  }
+});
+
+app.put("/api/tarefas/:id", async (req, res) => {
+  try {
+    const { novoStatus, ...resto } = req.body as { novoStatus?: string; [k: string]: unknown };
+    if (novoStatus) {
+      await atualizarStatusTarefa(Number(req.params.id), { novoStatus: novoStatus as any });
+    }
+    if (Object.keys(resto).length > 0) {
+      await atualizarTarefa(Number(req.params.id), resto);
+    }
+    const [tarefa] = (await listarTarefas()).filter((t) => t.id === Number(req.params.id));
+    res.json(tarefa);
+  } catch (err) {
+    res.status(400).json({ erro: (err as Error).message });
+  }
+});
+
+app.delete("/api/tarefas/:id", async (req, res) => {
+  try {
+    await excluirTarefa(Number(req.params.id));
+    res.status(204).end();
+  } catch (err) {
+    res.status(400).json({ erro: (err as Error).message });
+  }
+});
+
+// --- Listas auxiliares pra formulários (dropdowns) ---
+
+app.get("/api/projetos/lista", async (_req, res) => {
+  try {
+    const projetos = await prisma.projeto.findMany({
+      where: { status: { not: "Cancelado" } },
+      select: { id: true, nome: true },
+      orderBy: { nome: "asc" },
+    });
+    res.json(projetos);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ erro: "Falha ao listar projetos" });
+  }
+});
+
+app.get("/api/opcoes", (_req, res) => {
+  res.json({ statusTarefa: STATUS_TAREFA, prioridade: PRIORIDADE_PROJETO });
 });
 
 // --- Frontend (build do React/Vite) ---

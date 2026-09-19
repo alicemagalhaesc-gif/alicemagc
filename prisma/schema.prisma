@@ -14,6 +14,7 @@ datasource db {
 model Pessoa {
   id                       Int      @id @default(autoincrement())
   nome                     String
+  cargo                    String?
   email                    String?
   capacidade_horas_semana  Int      @default(40)
   ativo                    Boolean  @default(true)
@@ -85,6 +86,7 @@ model Tarefa {
   projeto   Projeto @relation(fields: [projetoId], references: [id])
   nome      String
   status    String // A Fazer | Em Andamento | Bloqueado | Concluído
+  prioridade String @default("Média") // Alta | Média | Baixa
 
   data_criacao        DateTime  @default(now())
   data_inicio          DateTime? // controlada exclusivamente por gatilho

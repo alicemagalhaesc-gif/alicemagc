@@ -43,6 +43,7 @@ export const ENTIDADES: Record<EntidadeExploravel, { label: string; campos: Defi
       { chave: "id", label: "ID", tipo: "number" },
       { chave: "nome", label: "Nome", tipo: "string" },
       { chave: "status", label: "Status", tipo: "enum", opcoes: ["A Fazer", "Em Andamento", "Bloqueado", "Concluído"] },
+      { chave: "prioridade", label: "Prioridade", tipo: "enum", opcoes: ["Alta", "Média", "Baixa"] },
       { chave: "estimativa_horas", label: "Estimativa (horas)", tipo: "number" },
       { chave: "data_inicio", label: "Data de Início", tipo: "date" },
       { chave: "data_conclusao", label: "Data de Conclusão", tipo: "date" },
@@ -54,6 +55,7 @@ export const ENTIDADES: Record<EntidadeExploravel, { label: string; campos: Defi
     campos: [
       { chave: "id", label: "ID", tipo: "number" },
       { chave: "nome", label: "Nome", tipo: "string" },
+      { chave: "cargo", label: "Cargo", tipo: "string" },
       { chave: "email", label: "Email", tipo: "string" },
       { chave: "capacidade_horas_semana", label: "Capacidade (h/semana)", tipo: "number" },
       { chave: "ativo", label: "Ativo", tipo: "boolean" },

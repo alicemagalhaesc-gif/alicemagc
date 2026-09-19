@@ -31,12 +31,14 @@ const CAMPOS: Record<EntidadeImportavel, CampoImportavel[]> = {
     { chave: "nome", label: "Nome", obrigatorio: true },
     { chave: "projeto", label: "Projeto (nome)", obrigatorio: true },
     { chave: "status", label: "Status", obrigatorio: false },
+    { chave: "prioridade", label: "Prioridade", obrigatorio: false },
     { chave: "estimativa_horas", label: "Estimativa (horas)", obrigatorio: false },
     { chave: "responsavel", label: "Responsável (nome da pessoa)", obrigatorio: false },
     { chave: "data_fim_planejada", label: "Data Fim Planejada", obrigatorio: false },
   ],
   pessoa: [
     { chave: "nome", label: "Nome", obrigatorio: true },
+    { chave: "cargo", label: "Cargo", obrigatorio: false },
     { chave: "email", label: "Email", obrigatorio: false },
     { chave: "capacidade_horas_semana", label: "Capacidade (h/semana)", obrigatorio: false },
     { chave: "ativo", label: "Ativo", obrigatorio: false },
@@ -74,6 +76,7 @@ const ALIASES: Record<EntidadeImportavel, Record<string, string>> = {
     projeto: "projeto",
     "nome do projeto": "projeto",
     status: "status",
+    prioridade: "prioridade",
     "estimativa horas": "estimativa_horas",
     estimativa: "estimativa_horas",
     horas: "estimativa_horas",
@@ -84,6 +87,7 @@ const ALIASES: Record<EntidadeImportavel, Record<string, string>> = {
   },
   pessoa: {
     nome: "nome",
+    cargo: "cargo",
     email: "email",
     "capacidade horas semana": "capacidade_horas_semana",
     capacidade: "capacidade_horas_semana",
@@ -293,6 +297,9 @@ async function importarLinhaTarefa(linha: Record<string, string>, mapa: Record<s
   const statusBruto = campo("status")?.trim();
   const status: StatusTarefa = (STATUS_TAREFA as readonly string[]).includes(statusBruto ?? "") ? (statusBruto as StatusTarefa) : "A Fazer";
 
+  const prioridadeBruta = campo("prioridade")?.trim();
+  const prioridade = (PRIORIDADE_PROJETO as readonly string[]).includes(prioridadeBruta ?? "") ? prioridadeBruta! : "Média";
+
   const estimativaHoras = paraNumero(campo("estimativa_horas"));
   const dataFimPlanejada = paraData(campo("data_fim_planejada"));
   const responsavelId = await resolverPessoaPorNome(campo("responsavel"));
@@ -301,6 +308,7 @@ async function importarLinhaTarefa(linha: Record<string, string>, mapa: Record<s
     nome,
     projetoId: projeto.id,
     status,
+    prioridade,
     estimativa_horas: estimativaHoras,
     data_fim_planejada: dataFimPlanejada,
     responsavelId,
@@ -316,6 +324,7 @@ async function importarLinhaPessoa(linha: Record<string, string>, mapa: Record<s
   await prisma.pessoa.create({
     data: {
       nome,
+      cargo: campo("cargo")?.trim() || null,
       email: campo("email")?.trim() || null,
       capacidade_horas_semana: paraNumero(campo("capacidade_horas_semana")) ?? 40,
       ativo: paraBooleano(campo("ativo"), true),

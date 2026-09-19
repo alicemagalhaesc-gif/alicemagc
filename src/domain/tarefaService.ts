@@ -9,6 +9,7 @@ import { StatusTarefa, DEBOUNCE_ATIVIDADE_MS } from "./constants";
  */
 export interface TarefaEditInput {
   nome?: string;
+  prioridade?: string;
   data_fim_planejada?: Date | null;
   responsavelId?: number | null;
   estimativa_horas?: number | null;
@@ -22,6 +23,7 @@ export interface TarefaCriarInput extends TarefaEditInput {
 
 const CAMPOS_EDITAVEIS = [
   "nome",
+  "prioridade",
   "data_fim_planejada",
   "responsavelId",
   "estimativa_horas",
@@ -55,6 +57,21 @@ async function bumpAtividadeProjeto(projetoId: number, agora: Date) {
       data: { data_ultima_atividade: agora },
     });
   }
+}
+
+export async function listarTarefas() {
+  return prisma.tarefa.findMany({
+    include: { projeto: { select: { id: true, nome: true } }, responsavel: { select: { id: true, nome: true } } },
+    orderBy: { id: "desc" },
+  });
+}
+
+/** Apaga a tarefa e seu histórico de eventos (TarefaEvento é filho obrigatório dela). */
+export async function excluirTarefa(id: number) {
+  await prisma.$transaction([
+    prisma.tarefaEvento.deleteMany({ where: { tarefaId: id } }),
+    prisma.tarefa.delete({ where: { id } }),
+  ]);
 }
 
 export async function criarTarefa(input: TarefaCriarInput, agora: Date = new Date()) {

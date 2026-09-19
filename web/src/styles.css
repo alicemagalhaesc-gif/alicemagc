@@ -534,6 +534,79 @@ input[type="file"] {
   padding-left: 18px;
 }
 
+.card label select,
+.card label input {
+  width: 100%;
+}
+
+.table-actions {
+  display: flex;
+  gap: 6px;
+}
+.table-actions button {
+  appearance: none;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 2px 4px;
+  color: var(--text-muted);
+}
+.table-actions button:hover {
+  color: var(--text-primary);
+}
+.table-actions button.danger:hover {
+  color: var(--rag-vermelho);
+}
+
+.status-pill {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+.status-pill.a-fazer {
+  background: var(--surface-2);
+  color: var(--text-secondary);
+}
+.status-pill.em-andamento {
+  background: rgba(29, 78, 216, 0.12);
+  color: var(--series-1);
+}
+.status-pill.bloqueado {
+  background: rgba(208, 59, 59, 0.12);
+  color: var(--rag-vermelho);
+}
+.status-pill.concluido {
+  background: rgba(12, 163, 12, 0.12);
+  color: var(--rag-verde);
+}
+
+.pill-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.pill-tabs button {
+  appearance: none;
+  border: 1px solid var(--gridline);
+  background: var(--surface);
+  color: var(--text-secondary);
+  border-radius: 999px;
+  padding: 6px 14px;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.pill-tabs button.is-active {
+  background: var(--series-1);
+  border-color: var(--series-1);
+  color: #fff;
+}
+
 .filter-row {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr auto;

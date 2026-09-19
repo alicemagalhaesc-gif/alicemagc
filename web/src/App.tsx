@@ -2,6 +2,8 @@ import { useState } from "react";
 import { Nav, type Aba } from "./components/Nav";
 import { DashboardPage } from "./pages/DashboardPage";
 import { ProjectListPage } from "./pages/ProjectListPage";
+import { PeoplePage } from "./pages/PeoplePage";
+import { TasksPage } from "./pages/TasksPage";
 import { ImportPage } from "./pages/ImportPage";
 import { ExplorerPage } from "./pages/ExplorerPage";
 
@@ -18,7 +20,11 @@ export default function App() {
     <div className="app">
       <Nav ativa={aba} onMudar={setAba} />
       {aba === "dashboard" && <DashboardPage onAbrirProjeto={abrirProjeto} />}
-      {aba === "projetos" && <ProjectListPage projetoSelecionadoId={projetoSelecionado} onSelecionarProjeto={setProjetoSelecionado} />}
+      {aba === "projetos" && (
+        <ProjectListPage projetoSelecionadoId={projetoSelecionado} onSelecionarProjeto={setProjetoSelecionado} />
+      )}
+      {aba === "pessoas" && <PeoplePage />}
+      {aba === "tarefas" && <TasksPage />}
       {aba === "importar" && <ImportPage />}
       {aba === "explorar" && <ExplorerPage />}
     </div>
