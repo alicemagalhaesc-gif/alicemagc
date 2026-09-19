@@ -1,6 +1,7 @@
 import { useLanguage } from "../i18n/LanguageContext";
 import { IDIOMAS } from "../i18n/translations";
 import type { ChaveTraducao } from "../i18n/translations";
+import { useAuth } from "../auth/AuthContext";
 
 export type Aba = "dashboard" | "projetos" | "pessoas" | "tarefas" | "importar" | "explorar";
 
@@ -15,6 +16,7 @@ const ITENS: { chave: Aba; labelKey: ChaveTraducao; icone: string }[] = [
 
 export function Nav({ ativa, onMudar }: { ativa: Aba; onMudar: (a: Aba) => void }) {
   const { idioma, setIdioma, t } = useLanguage();
+  const { usuario, logout } = useAuth();
 
   return (
     <aside className="sidebar">
@@ -44,6 +46,13 @@ export function Nav({ ativa, onMudar }: { ativa: Aba; onMudar: (a: Aba) => void 
             </option>
           ))}
         </select>
+      </div>
+
+      <div className="sidebar-user">
+        <span className="sidebar-user-nome">{usuario?.nome}</span>
+        <button className="sidebar-user-sair" onClick={() => logout()}>
+          {t("sidebar.sair")}
+        </button>
       </div>
     </aside>
   );

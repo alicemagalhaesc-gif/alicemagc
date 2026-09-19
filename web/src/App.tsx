@@ -6,8 +6,11 @@ import { PeoplePage } from "./pages/PeoplePage";
 import { TasksPage } from "./pages/TasksPage";
 import { ImportPage } from "./pages/ImportPage";
 import { ExplorerPage } from "./pages/ExplorerPage";
+import { LoginPage } from "./pages/LoginPage";
+import { useAuth } from "./auth/AuthContext";
 
 export default function App() {
+  const { usuario, carregando } = useAuth();
   const [aba, setAba] = useState<Aba>("dashboard");
   const [projetoSelecionado, setProjetoSelecionado] = useState<number | null>(null);
 
@@ -15,6 +18,9 @@ export default function App() {
     setProjetoSelecionado(id);
     setAba("projetos");
   }
+
+  if (carregando) return null;
+  if (!usuario) return <LoginPage />;
 
   return (
     <div className="app-shell">

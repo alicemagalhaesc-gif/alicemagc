@@ -1,8 +1,9 @@
 import "dotenv/config";
 import path from "node:path";
 import { existsSync } from "node:fs";
-import express from "express";
+import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import multer from "multer";
 import { prisma, garantirTriggersDeImutabilidade } from "./db";
 import { montarPayloadDashboard } from "./domain/dashboardService";
@@ -11,12 +12,72 @@ import { executarConsulta, ENTIDADES, ConsultaExplorer } from "./domain/explorer
 import { listarPessoas, criarPessoa, atualizarPessoa, excluirPessoa } from "./domain/pessoaService";
 import { listarTarefas, criarTarefa, atualizarTarefa, atualizarStatusTarefa, excluirTarefa } from "./domain/tarefaService";
 import { STATUS_TAREFA, PRIORIDADE_PROJETO } from "./domain/constants";
+import { autenticar, gerarToken, verificarToken, buscarUsuarioLogado } from "./domain/authService";
 
 const app = express();
-app.use(cors());
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
+app.use(cookieParser());
 
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 10 * 1024 * 1024 } });
+
+const NOME_COOKIE = "token";
+
+declare global {
+  namespace Express {
+    interface Request {
+      usuarioId?: number;
+    }
+  }
+}
+
+function exigirAutenticacao(req: Request, res: Response, next: NextFunction) {
+  const token = req.cookies?.[NOME_COOKIE];
+  const payload = token ? verificarToken(token) : null;
+  if (!payload) return res.status(401).json({ erro: "Não autenticado" });
+  req.usuarioId = payload.usuarioId;
+  next();
+}
+
+// --- Autenticação ---
+
+app.post("/api/login", async (req, res) => {
+  try {
+    const { email, senha } = req.body as { email?: string; senha?: string };
+    if (!email || !senha) return res.status(400).json({ erro: "Informe email e senha" });
+
+    const usuario = await autenticar(email, senha);
+    const token = gerarToken(usuario.id);
+    res.cookie(NOME_COOKIE, token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      maxAge: 30 * 24 * 60 * 60 * 1000,
+    });
+    res.json(usuario);
+  } catch (err) {
+    res.status(401).json({ erro: (err as Error).message });
+  }
+});
+
+app.post("/api/logout", (_req, res) => {
+  res.clearCookie(NOME_COOKIE);
+  res.status(204).end();
+});
+
+app.get("/api/me", async (req, res) => {
+  const token = req.cookies?.[NOME_COOKIE];
+  const payload = token ? verificarToken(token) : null;
+  if (!payload) return res.status(401).json({ erro: "Não autenticado" });
+  const usuario = await buscarUsuarioLogado(payload.usuarioId);
+  if (!usuario) return res.status(401).json({ erro: "Não autenticado" });
+  res.json(usuario);
+});
+
+app.use("/api", (req, res, next) => {
+  if (req.path === "/login" || req.path === "/logout" || req.path === "/me") return next();
+  exigirAutenticacao(req, res, next);
+});
 
 app.get("/api/dashboard", async (req, res) => {
   try {

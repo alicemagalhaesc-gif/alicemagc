@@ -15,7 +15,8 @@ model Pessoa {
   id                       Int      @id @default(autoincrement())
   nome                     String
   cargo                    String?
-  email                    String?
+  email                    String?  // unicidade validada em authService.ts, não no banco
+  senha_hash               String?  // null = pessoa sem acesso de login ao sistema
   capacidade_horas_semana  Int      @default(40)
   ativo                    Boolean  @default(true)
 

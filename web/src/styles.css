@@ -577,7 +577,9 @@ table.projects-table tbody tr:hover {
 select,
 input[type="text"],
 input[type="number"],
-input[type="file"] {
+input[type="file"],
+input[type="email"],
+input[type="password"] {
   font: inherit;
   font-size: 13px;
   padding: 7px 10px;
@@ -756,4 +758,107 @@ input[type="file"] {
   .filter-row {
     grid-template-columns: 1fr;
   }
+}
+
+.sidebar-user {
+  margin-top: 14px;
+  padding: 12px 8px 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sidebar-user-nome {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--sidebar-active-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sidebar-user-sair {
+  appearance: none;
+  border: none;
+  background: none;
+  color: var(--sidebar-text-muted);
+  font: inherit;
+  font-size: 11px;
+  cursor: pointer;
+  padding: 2px 0;
+  flex: none;
+}
+.sidebar-user-sair:hover {
+  color: #fff;
+}
+
+@media (max-width: 768px) {
+  .sidebar-user {
+    margin-top: 0;
+    border-top: none;
+    padding: 0 0 0 8px;
+  }
+  .sidebar-user-nome {
+    display: none;
+  }
+}
+
+.login-screen {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--sidebar-bg);
+  padding: 16px;
+}
+.login-card {
+  width: 100%;
+  max-width: 340px;
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.login-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.login-brand-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+.login-brand-sub {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+.login-titulo {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0;
+}
+.login-campo {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.login-campo input {
+  width: 100%;
+}
+.login-erro {
+  font-size: 12px;
+  color: var(--rag-vermelho);
+  background: rgba(208, 59, 59, 0.08);
+  border: 1px solid rgba(208, 59, 59, 0.2);
+  border-radius: 8px;
+  padding: 8px 10px;
 }

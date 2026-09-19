@@ -23,6 +23,14 @@ export const TRADUCOES = {
   "sidebar.brandTitle": { pt: "Portfólio", en: "Portfolio", es: "Portafolio" },
   "sidebar.brandSub": { pt: "Gestão de Projetos", en: "Project Management", es: "Gestión de Proyectos" },
   "sidebar.idioma": { pt: "Idioma", en: "Language", es: "Idioma" },
+  "sidebar.sair": { pt: "Sair", en: "Log out", es: "Salir" },
+
+  // Login
+  "login.titulo": { pt: "Entrar", en: "Log in", es: "Iniciar sesión" },
+  "login.email": { pt: "Email", en: "Email", es: "Correo electrónico" },
+  "login.senha": { pt: "Senha", en: "Password", es: "Contraseña" },
+  "login.entrar": { pt: "Entrar", en: "Log in", es: "Iniciar sesión" },
+  "login.entrando": { pt: "Entrando...", en: "Logging in...", es: "Iniciando sesión..." },
 
   // Dashboard — cabeçalho e cards linha 1
   "dashboard.titulo": { pt: "Dashboard do Portfólio", en: "Portfolio Dashboard", es: "Panel del Portafolio" },
