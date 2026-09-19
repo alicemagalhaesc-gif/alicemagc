@@ -95,7 +95,7 @@ const ALIASES: Record<EntidadeImportavel, Record<string, string>> = {
   },
 };
 
-function normalizarCabecalho(s: string): string {
+export function normalizarCabecalho(s: string): string {
   return s
     .normalize("NFD")
     .replace(/[̀-ͯ]/g, "")
@@ -117,7 +117,7 @@ export interface PreviewImportacao {
 // arquivo inteiro na hora de confirmar a importação.
 const cacheImportacoes = new Map<string, { entidade: EntidadeImportavel; linhas: Record<string, string>[] }>();
 
-async function parsearArquivo(buffer: Buffer, nomeArquivo: string): Promise<Record<string, string>[]> {
+export async function parsearArquivo(buffer: Buffer, nomeArquivo: string): Promise<Record<string, string>[]> {
   const ehCsv = nomeArquivo.toLowerCase().endsWith(".csv");
 
   if (ehCsv) {

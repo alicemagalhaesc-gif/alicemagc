@@ -191,6 +191,26 @@ export const TRADUCOES = {
   "importar.falhaLer": { pt: "Falha ao ler o arquivo", en: "Failed to read the file", es: "Error al leer el archivo" },
   "importar.falhaImportar": { pt: "Falha ao importar", en: "Failed to import", es: "Error al importar" },
 
+  // Importar — MS Project (EAP completa)
+  "importar.msproject": { pt: "MS Project (EAP)", en: "MS Project (WBS)", es: "MS Project (EDT)" },
+  "importar.mspAjuda": {
+    pt: "Suba o export \"Planilha de Tarefas\" do MS Project (CSV ou Excel), com a EAP completa — o sistema reconhece as colunas automaticamente.",
+    en: "Upload the MS Project \"Task Sheet\" export (CSV or Excel), with the full WBS — the system recognizes the columns automatically.",
+    es: "Suba la exportación \"Hoja de Tareas\" de MS Project (CSV o Excel), con la EDT completa — el sistema reconoce las columnas automáticamente.",
+  },
+  "importar.mspProjetoNovo": { pt: "(projeto novo)", en: "(new project)", es: "(proyecto nuevo)" },
+  "importar.mspProjetoExistente": { pt: "(projeto já cadastrado — será atualizado)", en: "(already registered — will be updated)", es: "(ya registrado — será actualizado)" },
+  "importar.mspLinhasEap": { pt: "linhas da EAP", en: "WBS rows", es: "filas de la EDT" },
+  "importar.mspMarcos": { pt: "marcos", en: "milestones", es: "hitos" },
+  "importar.mspRecursos": { pt: "recursos detectados", en: "resources detected", es: "recursos detectados" },
+  "importar.mspInicio": { pt: "Início", en: "Start", es: "Inicio" },
+  "importar.mspTermino": { pt: "Término", en: "Finish", es: "Término" },
+  "importar.mspMarco": { pt: "Marco", en: "Milestone", es: "Hito" },
+  "importar.mspMaisLinhas": { pt: "+ {n} linha(s) não exibida(s) neste preview.", en: "+ {n} row(s) not shown in this preview.", es: "+ {n} fila(s) no mostrada(s) en esta vista previa." },
+  "importar.mspCriadas": { pt: "tarefa(s) criada(s)", en: "task(s) created", es: "tarea(s) creada(s)" },
+  "importar.mspAtualizadas": { pt: "atualizada(s)", en: "updated", es: "actualizada(s)" },
+  "importar.mspPessoasNovas": { pt: "pessoa(s) nova(s) cadastrada(s)", en: "new people registered", es: "persona(s) nueva(s) registrada(s)" },
+
   // Explorar Dados
   "explorar.titulo": { pt: "Explorar Dados", en: "Explore Data", es: "Explorar Datos" },
   "explorar.subtitulo": { pt: "Filtre, agrupe e some sem escrever consulta — escolha as opções abaixo.", en: "Filter, group, and sum without writing a query — choose the options below.", es: "Filtre, agrupe y sume sin escribir consultas — elija las opciones abajo." },
