@@ -5,53 +5,66 @@
 ## 1. O que foi implementado
 
 - Rebuild completo do protótipo Base44 em stack própria (Node/TypeScript + React), com toda a lógica de KPIs, gatilhos e imutabilidade de baseline preservada das entregas anteriores.
-- **Dashboard reutilizável por escopo**: o mesmo componente de dashboard (cards, gráficos, tabela) é usado tanto para o portfólio inteiro quanto para um projeto específico, através de um parâmetro de escopo no backend.
+- **Dashboard reutilizável por escopo**: o mesmo componente de dashboard (cards, gráficos, tabela) é usado tanto para o portfólio inteiro quanto para um projeto específico, através de um parâmetro de escopo no backend — não existem dois dashboards com lógica diferente.
 - **Aba "Projetos"**: dropdown para selecionar um projeto e ver o dashboard filtrado só para ele, reaproveitando 100% do layout do dashboard geral.
-- **Aba "Pessoas"** e **"Tarefas"**: CRUD completo (criar/editar/excluir), com campos Cargo e Prioridade.
-- **Navegação lateral (sidebar)** + **suporte a 3 idiomas** (PT/EN/ES, seletor na sidebar). Traduz só a interface fixa — dados cadastrados pelo usuário nunca são traduzidos.
-- **Login com senha** (autenticação por cookie/JWT) — toda a API exige sessão autenticada, exceto `/api/login`, `/api/logout`, `/api/me`.
-- **Importação de planilhas genérica** (CSV/XLSX) para Projetos, Tarefas e Pessoas, com preview e mapeamento manual de colunas.
-- **Importador dedicado do MS Project (EAP completa)**: novo modo "MS Project (EAP)" na aba Importar — sobe o export "Planilha de Tarefas" e cria/atualiza o projeto inteiro automaticamente, sem mapeamento manual (formato fixo e conhecido). Ver detalhes na seção 6.
-- **Legendas (ⓘ) em todo o dashboard**: ícone com tooltip explicando cada um dos 8 cards, 5 gráficos e as colunas calculadas da tabela de projetos.
+- **Aba "Pessoas"**: CRUD completo (criar/editar/excluir) dos recursos do escritório de projetos, com campo Cargo. Sem controle de horas trabalhadas (decisão explícita — não há fonte de dado real para isso).
+- **Aba "Tarefas"**: CRUD completo de tarefas, com filtro por status, busca e campo Prioridade (Alta/Média/Baixa).
+- **Navegação lateral (sidebar)**: menu convertido de abas horizontais para sidebar vertical fixa, no padrão visual do protótipo Base44 de referência.
+- **Suporte a 3 idiomas (PT/EN/ES)**: seletor de idioma na sidebar (🇧🇷🇺🇸🇪🇸). Traduz apenas a interface fixa (menus, títulos, botões, tooltips); dados cadastrados pelo usuário (nomes, status como "Em Andamento", prioridades) permanecem sempre no idioma original em que foram digitados.
+- **Importação de planilhas** (CSV/XLSX) para Projetos, Tarefas e Pessoas, com preview e mapeamento de colunas.
 - **Explorar Dados**: consulta ad-hoc com filtros, agrupamento e seleção de campos sobre Projetos/Tarefas/Pessoas.
-- **Banco de dados em PostgreSQL** (Neon, em nuvem) — migrado de SQLite, incluindo tradução do gatilho de imutabilidade de baseline para PL/pgSQL.
+- **Migração do banco de dados** de SQLite (local) para PostgreSQL (Neon, em nuvem), incluindo tradução do gatilho de imutabilidade de baseline para PL/pgSQL.
 - **Deploy em produção**: aplicação publicada em `https://alicemagc.onrender.com`, com deploy automático a cada `git push` na branch `main` (GitHub → Render).
 
 ## 2. Arquivos principais alterados/criados nesta fase
 
 **Backend**
-- `src/server.ts` — rotas de API, autenticação obrigatória em `/api/*`, serve os arquivos estáticos do frontend em produção.
-- `src/domain/authService.ts` — login, hash de senha (bcrypt), geração/verificação de JWT.
-- `src/domain/msProjectImportService.ts` (novo) — parse do export do MS Project (EDT, marcos, recursos com % de alocação, custo), upsert por `projetoId + edt`, proteção de baseline contra sobrescrita silenciosa.
-- `src/domain/importService.ts` — decodificação automática de CSV em Windows-1252 (Excel em português salva CSV assim, não UTF-8) via `iconv-lite`; funções `parsearArquivo`/`normalizarCabecalho` agora exportadas e reaproveitadas pelo importador de MS Project.
-- `src/domain/dashboardService.ts` — `montarPayloadDashboard(agora, escopoProjetoId?)`, função única para portfólio e projeto individual.
-- `src/domain/pessoaService.ts`, `tarefaService.ts` — CRUD + campos `cargo`/`prioridade`.
-- `prisma/schema.prisma` — Postgres; `Pessoa.email`/`senha_hash` (login); `Tarefa.edt/eh_marco/duracao_dias/custo_planejado/predecessoras_raw`; nova tabela `TarefaRecurso` (alocação por % vinda do MS Project); `Projeto.origem_dados`.
+- `src/server.ts` — rotas de API, serve os arquivos estáticos do frontend em produção, endpoints de Pessoas/Tarefas/listas auxiliares.
+- `src/db.ts` — trigger de imutabilidade de baseline reescrito em PL/pgSQL.
+- `src/domain/dashboardService.ts` — `montarPayloadDashboard(agora, escopoProjetoId?)`, função única reaproveitada para portfólio e projeto individual.
+- `src/domain/pessoaService.ts` (novo) — CRUD de Pessoa.
+- `src/domain/tarefaService.ts` — CRUD de Tarefa + campo `prioridade`.
+- `src/domain/importService.ts`, `src/domain/explorerService.ts` — suporte aos novos campos `cargo`/`prioridade`.
+- `prisma/schema.prisma` — provider Postgres, campos `cargo` (Pessoa) e `prioridade` (Tarefa).
+- `.gitignore`, `.env.example` (novos) — preparação para deploy.
 
 **Frontend**
-- `web/src/App.tsx`, `web/src/components/Nav.tsx` — shell com sidebar + seletor de idioma.
-- `web/src/components/DashboardView.tsx` — componente único de dashboard, reaproveitado por escopo.
-- `web/src/components/Common.tsx` — novo `InfoTooltip` (ícone ⓘ), usado em cards/gráficos/tabela.
-- `web/src/pages/ImportPage.tsx` — segundo fluxo de import (MS Project), sem tela de mapeamento manual.
-- `web/src/pages/PeoplePage.tsx`, `TasksPage.tsx` — CRUD com modal.
-- `web/src/i18n/translations.ts` — dicionário PT/EN/ES, incluindo as novas legendas do dashboard e textos do importador de MS Project.
+- `web/src/App.tsx` — shell com sidebar + roteamento por estado local (sem react-router).
+- `web/src/components/Nav.tsx` — sidebar vertical + seletor de idioma.
+- `web/src/components/DashboardView.tsx` (novo) — componente único de dashboard, reaproveitado por escopo.
+- `web/src/pages/DashboardPage.tsx`, `web/src/pages/ProjectListPage.tsx` — wrappers do dashboard (portfólio vs. projeto via dropdown).
+- `web/src/pages/PeoplePage.tsx`, `web/src/pages/TasksPage.tsx` (novos) — CRUD com modal (`web/src/components/Modal.tsx`, novo).
+- `web/src/i18n/translations.ts`, `web/src/i18n/LanguageContext.tsx` (novos) — dicionário e contexto de idioma.
+- `web/src/format.ts` — funções `dias()` sensível a idioma; `num()`/`moeda()` permanecem fixos em pt-BR (decisão explícita).
+- Todos os componentes visuais (`CardsLinha1`, `CardsLinha2`, `Charts`, `ProjectsTable`, `Common`, páginas) foram adaptados para usar `useLanguage()`/`t()`.
 
 ## 3. Estrutura atual do frontend (`web/src`)
 
 ```
 web/src/
-  api.ts, types.ts, format.ts, main.tsx, App.tsx
-  i18n/            # translations.ts, LanguageContext.tsx
+  api.ts                  # chamadas fetch para a API
+  types.ts                # tipos compartilhados do payload do dashboard
+  format.ts               # formatação de número/moeda/dias/data
+  main.tsx                # entrypoint, envolve <App/> em <LanguageProvider>
+  App.tsx                 # shell (sidebar + área de conteúdo por aba)
+  i18n/
+    translations.ts       # dicionário PT/EN/ES
+    LanguageContext.tsx    # contexto + hook useLanguage()
   components/
-    Nav.tsx, DashboardView.tsx
-    CardsLinha1.tsx / CardsLinha2.tsx, Charts.tsx, ProjectsTable.tsx
-    Common.tsx      # Card, Tooltip, InfoTooltip, StatusDot, ValorOuTraco
-    Modal.tsx
+    Nav.tsx                # sidebar + seletor de idioma
+    DashboardView.tsx       # dashboard reutilizável (cards+gráficos+tabela)
+    CardsLinha1.tsx / CardsLinha2.tsx
+    Charts.tsx
+    ProjectsTable.tsx
+    Common.tsx              # Card, Tooltip, StatusDot, ValorOuTraco
+    Modal.tsx                # modal + CampoForm genéricos
   pages/
-    DashboardPage.tsx, ProjectListPage.tsx
-    PeoplePage.tsx, TasksPage.tsx
-    ImportPage.tsx   # genérico (Projeto/Tarefa/Pessoa) + MS Project (EAP)
-    ExplorerPage.tsx
+    DashboardPage.tsx        # dashboard do portfólio inteiro
+    ProjectListPage.tsx      # dropdown de projeto + dashboard escopado
+    PeoplePage.tsx            # CRUD de Pessoas
+    TasksPage.tsx              # CRUD de Tarefas
+    ImportPage.tsx              # importação de planilhas
+    ExplorerPage.tsx             # explorador de dados ad-hoc
 ```
 
 Stack: React 18 + TypeScript + Vite (build estático servido pelo backend em produção).
@@ -60,13 +73,18 @@ Stack: React 18 + TypeScript + Vite (build estático servido pelo backend em pro
 
 ```
 src/
-  server.ts, db.ts, kpis.ts
+  server.ts                 # Express: rotas /api/* + serve o build do frontend
+  db.ts                     # cliente Prisma + trigger de imutabilidade (Postgres)
+  kpis.ts                   # cálculo de KPIs (RAG, CPI, OTD, ritmo, etc.)
   domain/
-    authService.ts               # login/JWT
-    dashboardService.ts, projetoService.ts, tarefaService.ts, pessoaService.ts
-    importService.ts             # import genérico (CSV/XLSX) + parsing compartilhado
-    msProjectImportService.ts    # import dedicado da EAP do MS Project
-    explorerService.ts, kpiSnapshotJob.ts, regularizacaoService.ts
+    dashboardService.ts      # monta o payload do dashboard (com/sem escopo)
+    projetoService.ts          # CRUD/regras de Projeto
+    tarefaService.ts             # CRUD/gatilhos de Tarefa
+    pessoaService.ts               # CRUD de Pessoa
+    importService.ts                 # preview + commit de importação CSV/XLSX
+    explorerService.ts                 # consulta ad-hoc (Explorar Dados)
+    kpiSnapshotJob.ts                   # job diário de snapshot de KPI (histerese de cor)
+    regularizacaoService.ts               # regularização de dados legados
     appConfig.ts, constants.ts, datetime.ts, kpiAdapters.ts
   migrations/002_backfill_dados_legados.ts
   telas/regularizarProjetos.ts
@@ -76,28 +94,30 @@ Stack: Node.js + TypeScript + Express + Prisma ORM.
 
 ## 5. Banco de dados e conexão
 
-- **Motor**: PostgreSQL no **Neon** (serverless). Mesmo banco usado local e em produção (`DATABASE_URL`).
-- **Schema**: `Pessoa` (com login), `Projeto`, `Tarefa` (com campos de EAP), `TarefaRecurso` (novo — alocação de recurso por tarefa), `TarefaEvento`, `AppConfig`, `KpiSnapshot`, `BaselineAuditLog`.
-- **Integridade**: `data_fim_baseline_original` imutável por trigger de banco (PL/pgSQL); o importador de MS Project respeita isso — reimportar nunca sobrescreve a baseline, só avisa se divergir.
-- **Observação**: Neon em plano gratuito "dorme" por inatividade; a primeira requisição depois de um tempo pode falhar/demorar — normal, resolve sozinho na tentativa seguinte.
+- **Motor**: PostgreSQL, hospedado no **Neon** (serverless Postgres).
+- **Conexão**: via variável de ambiente `DATABASE_URL` (string `postgresql://...` com `sslmode=require`), configurada localmente em `.env` (não versionado) e no painel do Render em produção.
+- **Schema**: `prisma/schema.prisma` — modelos `Pessoa`, `Projeto`, `Tarefa`, `TarefaEvento` (histórico append-only), `AppConfig`, `KpiSnapshot` (histórico append-only para histerese de cor), `BaselineAuditLog`.
+- **Integridade**: imutabilidade de `data_fim_baseline_original` garantida por trigger de banco (PL/pgSQL), criado automaticamente na inicialização do servidor (`garantirTriggersDeImutabilidade()`).
+- **Observação**: o Neon em plano gratuito pode "suspender" a instância por inatividade; a primeira requisição após um período ocioso pode falhar/demorar (já observado em `prisma db push`) — normal, resolve-se sozinho na próxima tentativa.
 
 ## 6. Funcionalidades que já funcionam
 
-- Dashboard do portfólio e por projeto (mesmo componente), com legenda em cada indicador.
-- CRUD de Pessoas e Tarefas; login obrigatório para usar o site.
-- Importação genérica de planilhas (Projeto/Tarefa/Pessoa) com mapeamento manual.
-- **Importação da EAP do MS Project**: testada de ponta a ponta com um arquivo real de 188 linhas — 187 tarefas, 29 marcos e 19 recursos importados corretamente, incluindo acentuação (fix de encoding ANSI→UTF-8) e reimportação sem duplicar.
-- Explorar Dados; sidebar; idioma PT/EN/ES.
-- Deploy automático em produção via `git push` na `main`.
+- Dashboard do portfólio completo (saúde, OTD, CPI, atrasados, progresso ponderado, bloqueios, alocação de equipe, projetos desatualizados, tabela de projetos).
+- Dashboard por projeto individual (mesmo componente, escopado via dropdown).
+- CRUD de Pessoas e Tarefas (criar, editar, excluir).
+- Importação de planilhas (Projeto/Tarefa/Pessoa) com preview e mapeamento.
+- Explorar Dados (filtros, agrupamento, seleção de campos).
+- Sidebar de navegação com todas as abas.
+- Seletor de idioma (PT/EN/ES) persistido no navegador, cobrindo toda a interface fixa.
+- Deploy em produção acessível publicamente em `https://alicemagc.onrender.com`, independente do computador do usuário estar ligado.
+- Deploy automático via `git push` na branch `main`.
 
 ## 7. Problemas pendentes
 
-- **Dashboard não reflete dados de projeto importado do MS Project**: os cards (CPI, Progresso, Bloqueadas, OTD, Throughput) leem sinais de *execução* (status de tarefa, progresso, gasto) que o MS Project não fornece — só planejamento. Um projeto recém-importado aparece com quase tudo zerado, o que é *matematicamente correto* mas pouco útil. Precisa de uma camada de KPIs "planejado" (discutida em detalhe na conversa, ainda não implementada) ou pelo menos o card de **Alocação da Equipe** atualizado pra ler a nova tabela `TarefaRecurso` (dado já existe, só falta o card usar).
-- **Importador de Jira**: discutido e desenhado (tradução de status/prioridade em inglês, datas `dd/MMM/yy`, estimativa em segundos), mas não implementado — o usuário ainda não tem acesso/exemplo de export do Jira.
-- **Explorar Dados** — rótulos de coluna (Nome, Status, Orçamento etc.) não traduzidos em EN/ES, vêm direto do backend.
-- **Revisão geral dos gráficos** — pedido antigo do usuário, nunca retomado.
+- **Explorar Dados — rótulos de coluna não traduzidos**: os nomes dos campos exibidos nos checkboxes de seleção (Nome, Status, Orçamento, Progresso, etc.) vêm do backend (`ENTIDADES.campos[].label`) e continuam em português mesmo trocando o idioma da interface para EN/ES. Requer tradução no backend ou um mapeamento adicional no frontend — ainda não decidido/priorizado pelo usuário.
+- **Revisão geral dos gráficos**: pedido explícito do usuário ("vamos melhorar esse gráficos", escopo "todos os gráficos, revisão geral") foi feito mas interrompido antes de qualquer alteração. Não foi retomado nem cancelado.
 - Sem testes automatizados (`npm test` é placeholder).
 
 ## 8. Próximo passo recomendado
 
-Decidir entre: (a) conectar o card de **Alocação da Equipe** à tabela `TarefaRecurso` — rápido, dado já existe; ou (b) avançar na camada de **KPIs de planejamento** (Andamento/Custos/Recursos "planejado", conforme a matriz discutida) pra o dashboard fazer sentido com projetos vindos do MS Project antes de terem execução registrada.
+Confirmar com o usuário se deseja retomar a **revisão geral dos gráficos** (item pendente mais antigo e explicitamente solicitado), ou priorizar a tradução dos rótulos de campo da aba **Explorar Dados**. Ambos são itens de polimento — nenhum bloqueia o uso atual do sistema em produção.
